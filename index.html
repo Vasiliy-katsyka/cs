@@ -3,161 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CS2 Roulette</title>
+    <title>CS2 App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
         
         :root {
-            --bg-color: #121418; /* Как темный фон профиля */
-            --glass-bg: rgba(30, 34, 42, 0.8);
-            --primary: #ff5e00; /* Огненный оранжевый */
-            --secondary: #ffb300; /* Желтый акцент */
-            --text: #ffffff;
-            --border: rgba(255, 94, 0, 0.5);
+            --bg: #121418;
+            --primary: #ff5e00;
+            --accent: #ffb300;
+            --text: #fff;
+            --glass: rgba(30, 34, 42, 0.8);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
         
         body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 50% 0%, #301608 0%, transparent 70%);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
+            background-color: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
         }
 
-        .screen { display: none; width: 100%; max-width: 400px; padding: 20px; text-align: center; }
+        .screen { display: none; width: 100%; max-width: 400px; text-align: center; }
         .screen.active { display: flex; flex-direction: column; gap: 20px; align-items: center; }
 
-        .glass-box {
-            background: var(--glass-bg);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 0 20px rgba(255, 94, 0, 0.2), inset 0 0 10px rgba(255, 179, 0, 0.1);
-            backdrop-filter: blur(10px);
+        /* Стиль 1 экрана (по твоему рисунку) */
+        .sketch-box {
+            border: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 30px 20px;
             width: 100%;
+            background: transparent;
+            box-shadow: inset 0 0 15px rgba(255, 179, 0, 0.1);
+        }
+        .sketch-lines {
+            display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 30px;
+        }
+        .sketch-line { height: 4px; background: var(--accent); border-radius: 4px; }
+        .sketch-line:nth-child(1) { width: 60%; }
+        .sketch-line:nth-child(2) { width: 80%; }
+        .sketch-line:nth-child(3) { width: 50%; }
+
+        /* Общие карточки */
+        .glass-box {
+            background: var(--glass); border: 1px solid rgba(255, 94, 0, 0.3);
+            border-radius: 16px; padding: 24px; width: 100%;
         }
 
-        h1, h2 { text-transform: uppercase; font-weight: 900; background: linear-gradient(135deg, var(--secondary), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
         input {
-            width: 100%; padding: 12px; margin-top: 10px;
-            background: rgba(0,0,0,0.5); border: 1px solid var(--border);
-            color: #fff; border-radius: 8px; outline: none; font-size: 16px;
+            width: 100%; padding: 14px; margin-top: 10px; text-align: center;
+            background: rgba(0,0,0,0.5); border: 2px solid var(--accent);
+            color: #fff; border-radius: 8px; outline: none; font-size: 16px; font-weight: bold;
         }
         
         button {
             width: 100%; padding: 14px; margin-top: 15px;
             background: linear-gradient(135deg, var(--primary), #d93d00);
             color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(255, 94, 0, 0.4);
+            text-transform: uppercase; cursor: pointer;
         }
-        button:active { transform: scale(0.95); }
-        
-        /* Рулетка (CS2 Лента) */
+        button.secondary { background: #2a2e38; border: 1px solid #444; }
+
+        /* Рулетка */
         .roulette-container {
             width: 100%; height: 140px; background: rgba(0,0,0,0.6);
-            border: 2px solid var(--primary); border-radius: 8px;
-            overflow: hidden; position: relative; display: flex; align-items: center;
+            border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; position: relative;
         }
-        /* Линия по центру (прицел) */
         .roulette-container::after {
             content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
-            background: var(--secondary); box-shadow: 0 0 10px var(--secondary); z-index: 10;
+            background: var(--accent); box-shadow: 0 0 10px var(--accent); z-index: 10;
         }
-        .tape {
-            display: flex; height: 100%; align-items: center;
-            transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); /* Плавное замедление */
-            will-change: transform;
-        }
-        .item {
-            width: 120px; min-width: 120px; height: 120px; margin: 0 5px;
-            background: #1e222a; border: 1px solid #333; border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .tape { display: flex; height: 100%; align-items: center; transition: transform 5s cubic-bezier(0.1, 0, 0.1, 1); }
+        .item { min-width: 120px; height: 120px; margin: 0 5px; background: #1e222a; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .item img { width: 80px; height: 80px; object-fit: contain; }
-        .item span { font-size: 10px; color: #ccc; margin-top: 5px; text-align: center; }
+        .item span { font-size: 10px; color: #ccc; }
 
-        #top-bar { position: absolute; top: 20px; width: 100%; text-align: center; font-weight: bold; }
-        .admin-btn { background: #333; margin-top: 20px; border: 1px solid #555; box-shadow: none; }
+        .stat-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        
+        #admin-btn { position: absolute; top: 10px; right: 10px; background: #333; width: auto; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div id="top-bar" style="display: none;">Прокрутов: <span id="spins-count" style="color:var(--primary)">0</span></div>
+    <button id="admin-btn" style="display:none;" onclick="showScreen('screen-admin')">Админка</button>
 
     <!-- Загрузка -->
-    <div id="screen-loading" class="screen active">
-        <h2>Загрузка...</h2>
+    <div id="screen-loading" class="screen active"><h2>Загрузка...</h2></div>
+
+    <!-- 1. Экран ввода промокода (как на рисунке) -->
+    <div id="screen-promo" class="screen">
+        <div class="sketch-box">
+            <div class="sketch-lines">
+                <div class="sketch-line"></div>
+                <div class="sketch-line"></div>
+                <div class="sketch-line"></div>
+            </div>
+            <p style="margin-bottom: 10px; color: var(--accent); font-weight: bold;">Введите промокод доступа</p>
+            <input type="text" id="promo-input" placeholder="ПРОМОКОД">
+            <button onclick="checkPromo()">Продолжить</button>
+        </div>
     </div>
 
-    <!-- Экран Подписки -->
+    <!-- 2. Экран Подписки (появляется только если код верен, но нет подписки) -->
     <div id="screen-sub" class="screen">
         <div class="glass-box">
-            <h2>Доступ закрыт</h2>
-            <p style="margin-top: 10px">Подпишись на наш канал, чтобы крутить рулетку!</p>
-            <button onclick="window.Telegram.WebApp.openTelegramLink('https://t.me/твой_канал')">Перейти в канал</button>
-            <button onclick="checkUser()" style="background: transparent; border: 1px solid var(--primary)">Я подписался</button>
+            <h2>Обязательное условие</h2>
+            <p style="margin: 15px 0">Чтобы использовать код, подпишись на наш Telegram канал!</p>
+            <button onclick="window.Telegram.WebApp.openTelegramLink('https://t.me/ТВОЙ_КАНАЛ')">Перейти в канал</button>
+            <button class="secondary" onclick="checkPromo()">Я подписался</button>
         </div>
     </div>
 
-    <!-- Экран Промокода (Первый) -->
-    <div id="screen-main" class="screen">
-        <div class="glass-box">
-            <h2>Введи промокод</h2>
-            <input type="text" id="promo-input" placeholder="CODE123">
-            <button onclick="usePromo()">Активировать</button>
-        </div>
-        <div class="glass-box" style="margin-top: 20px">
-            <h2>Рулетка</h2>
-            <p style="margin: 10px 0; font-size: 14px; color: #ccc">Приглашай друзей и получай прокруты!</p>
-            <button onclick="openRoulette()">Перейти к рулетке</button>
-            <button onclick="copyRef()" style="background: #2a2e38">Копировать реф. ссылку</button>
-        </div>
-        <button id="btn-admin-panel" class="admin-btn" style="display:none;" onclick="showScreen('screen-admin')">Админ Панель</button>
-    </div>
-
-    <!-- Экран Рулетки -->
+    <!-- 3. Рулетка -->
     <div id="screen-roulette" class="screen">
         <div class="glass-box" style="padding: 15px">
+            <h2 style="margin-bottom:15px">Рулетка</h2>
             <div class="roulette-container">
-                <div class="tape" id="roulette-tape">
-                    <!-- Предметы генерируются в JS -->
-                </div>
+                <div class="tape" id="roulette-tape"></div>
             </div>
-            <button id="spin-btn" onclick="spinRoulette()">Крутить (-1 прокрут)</button>
-            <button onclick="showScreen('screen-main')" style="background: #2a2e38; margin-top: 10px">Назад</button>
+            <button id="spin-btn" onclick="spinRoulette()">Крутить (Осталось: <span id="r-spins"></span>)</button>
+            <button class="secondary" onclick="showScreen('screen-dashboard')" id="btn-to-dash" style="display:none;">В главное меню</button>
         </div>
     </div>
 
-    <!-- Экран Приза -->
+    <!-- 4. Экран Выигрыша и Трейда -->
     <div id="screen-win" class="screen">
         <div class="glass-box">
-            <h2>Твой выигрыш!</h2>
+            <h2 style="color:var(--accent)">Твой выигрыш!</h2>
             <img id="win-img" src="" style="width: 150px; height: 150px; margin: 15px 0">
             <h3 id="win-name">Предмет</h3>
-            <p style="font-size:12px; margin-top: 10px; color: #aaa">Введи свою Steam Trade URL</p>
-            <input type="text" id="trade-input" placeholder="https://steamcommunity.com/tradeoffer/new/?partner=...">
-            <button onclick="sendTrade()">Забрать приз</button>
+            <p style="font-size:12px; margin-top: 15px; color: #aaa">Введи Trade URL, чтобы забрать предмет</p>
+            <input type="text" id="trade-input" placeholder="https://steamcommunity.com/tradeoffer/...">
+            <button onclick="saveTradeAndFinish()">Готово</button>
         </div>
     </div>
 
-    <!-- Админка -->
-    <div id="screen-admin" class="screen">
+    <!-- 5. Главное меню (Дашборд) - появляется ПОСЛЕ первого круга или при повторном заходе -->
+    <div id="screen-dashboard" class="screen">
         <div class="glass-box">
-            <h2>Добавить приз</h2>
-            <input type="text" id="ap-name" placeholder="Название (AK-47 | Redline)">
-            <input type="text" id="ap-img" placeholder="URL Картинки (png)">
-            <input type="number" id="ap-chance" placeholder="Шанс (вес, например 10)">
-            <button onclick="addPrize()">Добавить</button>
-            <button onclick="showScreen('screen-main')" style="background: #2a2e38">Назад</button>
+            <h2>Профиль</h2>
+            <div class="stat-row"><span>Приглашено друзей:</span><strong id="d-friends">0</strong></div>
+            <div class="stat-row"><span>Доступно круток:</span><strong id="d-spins">0</strong></div>
+            
+            <p style="margin-top:20px; font-size:12px; color:#aaa">Твоя реферальная ссылка (+1 спин за друга):</p>
+            <input type="text" id="ref-link" readonly style="font-size: 12px; padding: 8px;">
+            <button onclick="copyRef()">Копировать ссылку</button>
+            
+            <button onclick="goToRoulette()" style="margin-top: 25px;">Перейти к рулетке</button>
+        </div>
+    </div>
+
+    <!-- 6. АДМИНКА -->
+    <div id="screen-admin" class="screen">
+        <div class="glass-box" style="text-align: left;">
+            <h2 style="text-align:center; margin-bottom:15px">Админка</h2>
+            
+            <p>Юзеров: <b id="a-users">0</b> | Выигрышей: <b id="a-wins">0</b></p>
+            <hr style="border-color:#333; margin:10px 0">
+            
+            <b>Генерация промо:</b>
+            <div style="display:flex; gap:10px">
+                <button onclick="genPromo(1)">На 1</button>
+                <button onclick="genPromo(5)">На 5</button>
+                <button onclick="genPromo(10)">На 10</button>
+            </div>
+            
+            <hr style="border-color:#333; margin:10px 0">
+            <b>Рассылка:</b>
+            <input type="text" id="broadcast-msg" placeholder="Текст сообщения">
+            <button onclick="sendBroadcast()">Разослать всем</button>
+
+            <hr style="border-color:#333; margin:10px 0">
+            <b>Добавить приз:</b>
+            <input type="text" id="p-name" placeholder="Название">
+            <input type="text" id="p-img" placeholder="Ссылка на PNG">
+            <input type="number" id="p-chance" placeholder="Шанс (вес)">
+            <button onclick="addPrize()">Добавить в рулетку</button>
+
+            <hr style="border-color:#333; margin:10px 0">
+            <b style="color:var(--accent)">Ожидают выдачи:</b>
+            <div id="pending-list" style="max-height: 150px; overflow-y:auto; margin-top:10px; font-size:12px"></div>
+
+            <button class="secondary" onclick="location.reload()" style="margin-top:20px">Закрыть админку</button>
         </div>
     </div>
 
@@ -165,170 +192,207 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
     
-    // --- НАСТРОЙКИ ---
-    const API_URL = "https://cs.kviappsgames.workers.dev/api"; // ВСТАВЬ ССЫЛКУ НА СВОЙ ВОРКЕР!
-    const tg_id = tg.initDataUnsafe?.user?.id || 123456789; // Fallback для тестов в браузере
-    const username = tg.initDataUnsafe?.user?.username || "unknown";
-    
-    let currentPrize = null;
-    let userSpins = 0;
+    // !!! ЗАМЕНИ ЭТИ ДАННЫЕ !!!
+    const API_URL = "https://cs.kviappsgames.workers.dev/api"; 
+    const BOT_USERNAME = "csrouelle_bot"; // без @
 
-    // Смена экранов
+    const tg_id = tg.initDataUnsafe?.user?.id || 123456789;
+    let userState = {};
+    let friendsCount = 0;
+    let wonPrize = null;
+
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'screen-main' || id === 'screen-roulette') {
-            document.getElementById('top-bar').style.display = 'block';
-        } else {
-            document.getElementById('top-bar').style.display = 'none';
-        }
     }
 
-    // API Запросы
-    async function apiCall(endpoint, method = "GET", body = null) {
-        const url = `${API_URL}${endpoint}${endpoint.includes('?') ? '&' : '?'}tg_id=${tg_id}`;
+    async function api(path, method = "GET", body = null) {
+        const url = `${API_URL}${path}?tg_id=${tg_id}`;
         const options = { method, headers: {} };
-        if (body) {
-            options.headers['Content-Type'] = 'application/json';
-            options.body = JSON.stringify(body);
-        }
+        if (body) { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
         const res = await fetch(url, options);
         return res.json();
     }
 
-    // Инициализация
-    async function checkUser() {
-        showScreen('screen-loading');
+    // Инициализация при старте
+    async function init() {
         try {
-            const data = await apiCall('/user');
-            if (!data.isSubbed && tg.initDataUnsafe?.user) { // Если не подписан (пропускаем в браузере без ТГ)
-                showScreen('screen-sub');
-                return;
+            const data = await api('/init');
+            userState = data.user;
+            friendsCount = data.friends;
+
+            if (data.isAdmin) {
+                document.getElementById('admin-btn').style.display = 'block';
+                loadAdminStats();
             }
-            
-            userSpins = data.user.spins;
-            document.getElementById('spins-count').innerText = userSpins;
-            
-            if (data.isAdmin) document.getElementById('btn-admin-panel').style.display = 'block';
-            
-            showScreen('screen-main');
-        } catch(e) { alert("Ошибка подключения к серверу"); }
+
+            // Логика отображения экранов
+            if (userState.has_access === 0) {
+                // Если нет доступа - 1 экран
+                showScreen('screen-promo');
+            } else if (userState.trade_url === null && userState.spins > 0) {
+                // Если есть доступ, но еще не ввел трейд - кидаем в рулетку
+                showScreen('screen-roulette');
+                document.getElementById('r-spins').innerText = userState.spins;
+                generateFakeTape();
+            } else {
+                // Если уже вводил трейд (постоянный юзер) - Дашборд
+                updateDashboard();
+                showScreen('screen-dashboard');
+            }
+        } catch (e) { alert("Ошибка связи с сервером"); }
     }
 
-    // Промокод
-    async function usePromo() {
+    // Проверка промокода (и подписки)
+    async function checkPromo() {
         const code = document.getElementById('promo-input').value;
-        if(!code) return;
-        const res = await apiCall('/promo', 'POST', { code });
-        if(res.error) return tg.showAlert(res.error);
+        if (!code && userState.has_access === 0) return; // Чтобы кнопка "Я подписался" работала, если код уже введен
         
-        userSpins += res.spins;
-        document.getElementById('spins-count').innerText = userSpins;
-        tg.showAlert(`Успешно! Получено прокрутов: ${res.spins}`);
-        document.getElementById('promo-input').value = "";
-    }
+        showScreen('screen-loading');
+        const res = await api('/promo', 'POST', { code: code || userState.last_code });
 
-    // Рефералка
-    function copyRef() {
-        const botUsername = "ТВОЙ_БОТ_ЮЗЕРНЕЙМ"; // Вставь юзернейм своего бота (без @)
-        const link = `https://t.me/${botUsername}?start=${tg_id}`;
-        navigator.clipboard.writeText(link);
-        tg.showAlert("Реферальная ссылка скопирована!");
-    }
-
-    function openRoulette() {
-        showScreen('screen-roulette');
-        generateFakeTape();
-    }
-
-    // Генерация визуала ленты
-    function generateFakeTape() {
-        const tape = document.getElementById('roulette-tape');
-        tape.style.transition = 'none';
-        tape.style.transform = 'translateX(0)';
-        tape.innerHTML = '';
-        
-        // Вставляем 100 заглушек
-        const dummyImgs =[
-            'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQiiOuQpoml3wW18xdkNTjxd9CQdwM_ZlrT-lW_k-e-gJ-Iu8yYzyEwuSE8pSGK2A/256fx256f',
-            'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PTbTjlH7du6kb-OqODxIYTCk2pd18l4jeHVu43w2Fbk-EVkMGn2cI_EIFVqYwmF_FK7x-rmh5W5tc7XiSw0K-A-RXI/256fx256f'
-        ];
-        
-        for(let i=0; i<80; i++) {
-            const isTarget = i === 65; // Победный предмет будет под индексом 65
-            const img = isTarget ? '' : dummyImgs[Math.floor(Math.random()*dummyImgs.length)];
-            tape.innerHTML += `<div class="item" id="item-${i}"><img src="${img}"><span>...</span></div>`;
+        if (res.error === "not_subbed") {
+            userState.last_code = code; // Запоминаем код, чтобы не вводить заново после подписки
+            showScreen('screen-sub');
+        } else if (res.error) {
+            tg.showAlert(res.error);
+            showScreen('screen-promo');
+        } else {
+            // Успех! Доступ открыт
+            userState.has_access = 1;
+            userState.spins += 1;
+            document.getElementById('r-spins').innerText = userState.spins;
+            generateFakeTape();
+            showScreen('screen-roulette');
         }
     }
 
-    // Вращение
+    // РУЛЕТКА
+    function generateFakeTape() {
+        const tape = document.getElementById('roulette-tape');
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)'; tape.innerHTML = '';
+        const dummyImg = 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQiiOuQpoml3wW18xdkNTjxd9CQdwM_ZlrT-lW_k-e-gJ-Iu8yYzyEwuSE8pSGK2A/256fx256f';
+        for(let i=0; i<80; i++) {
+            const isTarget = i === 65;
+            tape.innerHTML += `<div class="item" id="item-${i}"><img src="${isTarget ? '' : dummyImg}"><span>?</span></div>`;
+        }
+    }
+
     async function spinRoulette() {
-        if (userSpins <= 0) return tg.showAlert("У вас нет прокрутов!");
         const btn = document.getElementById('spin-btn');
         btn.disabled = true;
 
-        const res = await apiCall('/spin', 'POST');
-        if(res.error) { btn.disabled = false; return tg.showAlert(res.error); }
+        const res = await api('/spin', 'POST');
+        if (res.error) { btn.disabled = false; return tg.showAlert(res.error); }
 
-        userSpins--;
-        document.getElementById('spins-count').innerText = userSpins;
-        currentPrize = res.prize;
+        userState.spins--;
+        document.getElementById('r-spins').innerText = userState.spins;
+        wonPrize = res.prize;
 
-        // Вставляем выигранный предмет в ленту
-        const targetElement = document.getElementById('item-65');
-        targetElement.innerHTML = `<img src="${currentPrize.image_url}"><span>${currentPrize.name}</span>`;
-        targetElement.style.border = "2px solid var(--secondary)";
-        targetElement.style.boxShadow = "0 0 15px var(--secondary)";
+        const target = document.getElementById('item-65');
+        target.innerHTML = `<img src="${wonPrize.image_url}"><span>${wonPrize.name}</span>`;
+        target.style.border = "2px solid var(--accent)";
 
-        // Анимация кручения
         const tape = document.getElementById('roulette-tape');
-        const itemWidth = 130; // 120 width + 10 margin
-        // Смещаем чтобы элемент 65 оказался по центру
-        // Контейнер ~ 400px. Центр = 200px.
-        const centerOffset = (tape.parentElement.offsetWidth / 2) - (itemWidth / 2);
-        const randomPox = Math.floor(Math.random() * 80) - 40; // чуть рандома чтобы стрелка не вставала идеально ровно
-        
-        const shift = -(65 * itemWidth) + centerOffset + randomPox;
+        const offset = (tape.parentElement.offsetWidth / 2) - 65;
+        const shift = -(65 * 130) + offset + (Math.floor(Math.random()*60)-30);
 
-        // Запускаем CSS анимацию
         setTimeout(() => {
             tape.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
             tape.style.transform = `translateX(${shift}px)`;
         }, 50);
 
-        // Ждем конца анимации
         setTimeout(() => {
-            document.getElementById('win-img').src = currentPrize.image_url;
-            document.getElementById('win-name').innerText = currentPrize.name;
+            document.getElementById('win-img').src = wonPrize.image_url;
+            document.getElementById('win-name').innerText = wonPrize.name;
+            // Если трейд уже был введен ранее, просто подставим его
+            if(userState.trade_url) document.getElementById('trade-input').value = userState.trade_url;
             showScreen('screen-win');
             btn.disabled = false;
         }, 5500);
     }
 
-    // Отправка трейда
-    async function sendTrade() {
-        const tradeUrl = document.getElementById('trade-input').value;
-        if (!tradeUrl.includes('steamcommunity.com/tradeoffer')) return tg.showAlert("Введите корректную Trade URL");
+    // Сохранение трейда (Переход к Дашборду)
+    async function saveTradeAndFinish() {
+        const tUrl = document.getElementById('trade-input').value;
+        if (!tUrl.includes('steamcommunity')) return tg.showAlert("Введите валидную Steam Trade URL");
 
-        await apiCall('/trade', 'POST', { tradeUrl, prizeName: currentPrize.name, username });
-        tg.showAlert("Успешно! Ожидайте трейд от администратора.");
-        showScreen('screen-main');
-    }
-
-    // Админка: Добавить приз
-    async function addPrize() {
-        const name = document.getElementById('ap-name').value;
-        const image_url = document.getElementById('ap-img').value;
-        const chance = parseInt(document.getElementById('ap-chance').value);
-        if(!name || !image_url || !chance) return;
+        await api('/trade', 'POST', { tradeUrl: tUrl, prizeName: wonPrize.name });
+        userState.trade_url = tUrl; // Сохраняем локально
         
-        await apiCall('/admin/prize', 'POST', { name, image_url, chance });
-        tg.showAlert("Приз добавлен!");
-        document.getElementById('ap-name').value = '';
+        tg.showAlert("Готово! Трейд отправлен администратору.");
+        updateDashboard();
+        showScreen('screen-dashboard');
     }
 
-    // Старт
-    checkUser();
+    // ДАШБОРД (Главное меню)
+    function updateDashboard() {
+        document.getElementById('d-friends').innerText = friendsCount;
+        document.getElementById('d-spins').innerText = userState.spins;
+        document.getElementById('ref-link').value = `https://t.me/${BOT_USERNAME}?start=${tg_id}`;
+    }
+
+    function copyRef() {
+        navigator.clipboard.writeText(document.getElementById('ref-link').value);
+        tg.showAlert("Ссылка скопирована!");
+    }
+
+    function goToRoulette() {
+        if(userState.spins <= 0) return tg.showAlert("У вас 0 круток. Приглашайте друзей!");
+        document.getElementById('r-spins').innerText = userState.spins;
+        document.getElementById('btn-to-dash').style.display = 'block'; // Показываем кнопку назад
+        generateFakeTape();
+        showScreen('screen-roulette');
+    }
+
+    // --- ФУНКЦИИ АДМИНКИ ---
+    async function loadAdminStats() {
+        const res = await api('/admin/stats');
+        document.getElementById('a-users').innerText = res.users;
+        document.getElementById('a-wins').innerText = res.wins;
+        
+        const list = document.getElementById('pending-list');
+        list.innerHTML = res.pending.length === 0 ? "Нет заявок" : "";
+        res.pending.forEach(p => {
+            list.innerHTML += `<div style="background:#222; padding:5px; margin-bottom:5px; border-radius:5px;">
+                ID: ${p.tg_id} <br> Приз: ${p.prize_name} <br>
+                <a href="${p.trade_url}" target="_blank" style="color:var(--accent)">Трейд ссылка</a><br>
+                <button onclick="issuePrize(${p.id}, ${p.tg_id}, '${p.prize_name}')" style="padding:5px; font-size:10px; margin-top:5px">Отметить Выданным</button>
+            </div>`;
+        });
+    }
+
+    async function issuePrize(win_id, user_id, prize_name) {
+        await api('/admin/issue', 'POST', { win_id, user_id, prize_name });
+        tg.showAlert("Отмечено! Юзеру отправлено уведомление.");
+        loadAdminStats();
+    }
+
+    async function genPromo(uses) {
+        const res = await api('/admin/promo', 'POST', { uses });
+        tg.showAlert(`Код сгенерирован: ${res.code}\n(Скопировано в буфер)`);
+        navigator.clipboard.writeText(res.code);
+    }
+
+    async function sendBroadcast() {
+        const text = document.getElementById('broadcast-msg').value;
+        if(!text) return;
+        const res = await api('/admin/broadcast', 'POST', { text });
+        tg.showAlert(`Разослано ${res.count} юзерам!`);
+        document.getElementById('broadcast-msg').value = '';
+    }
+
+    async function addPrize() {
+        const name = document.getElementById('p-name').value;
+        const img = document.getElementById('p-img').value;
+        const chance = parseInt(document.getElementById('p-chance').value);
+        if(!name || !img || !chance) return;
+        await api('/admin/prize', 'POST', { name, image_url: img, chance });
+        tg.showAlert("Приз добавлен!");
+        document.getElementById('p-name').value = ''; document.getElementById('p-img').value = '';
+    }
+
+    init(); // Запуск
 </script>
 </body>
 </html>
