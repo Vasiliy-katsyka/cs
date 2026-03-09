@@ -108,10 +108,10 @@
 
     <!-- 1. Ввод промокода (Только если нет доступа) -->
     <div id="screen-promo" class="screen">
-        <!-- Картинка на фоне полупрозрачная НА ВЕСЬ ЭКРАН -->
-        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: url('https://github.com/Vasiliy-katsyka/cs/blob/main/BackgroundEraser_20260309_143810302.png?raw=true') center/cover no-repeat; opacity: 0.3; z-index: 0; pointer-events: none;"></div>
+        <!-- Картинка бойца на весь экран -->
+        <div style="position: fixed; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); background-image: url('https://github.com/Vasiliy-katsyka/cs/blob/main/BackgroundEraser_20260309_143810302.png?raw=true'); background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0.35; pointer-events: none; z-index: 0;"></div>
         
-        <div class="sketch-box">
+        <div class="sketch-box" style="position: relative; z-index: 1;">
             <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Введи секретный код</p>
             <input type="text" id="promo-input" placeholder="CODE-XXX">
             <button onclick="checkPromo()">Открыть доступ</button>
