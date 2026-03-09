@@ -13,7 +13,7 @@
             --primary: #ff5e00;
             --accent: #ffb300;
             --text: #fff;
-            --glass: rgba(30, 34, 42, 0.95); /* Чуть плотнее, чтобы не просвечивало */
+            --glass: rgba(30, 34, 42, 0.95);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
@@ -33,11 +33,13 @@
         /* Стиль 1 экрана (Маркер) */
         .sketch-box {
             border: 4px solid var(--accent);
-            border-radius: 20px 5px 15px 5px; /* Неровные углы как от руки */
+            border-radius: 20px 5px 15px 5px;
             padding: 40px 20px;
             width: 100%;
             background: transparent;
             box-shadow: inset 0 0 20px rgba(255, 179, 0, 0.05);
+            position: relative;
+            z-index: 1;
         }
         .sketch-lines { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 30px; }
         .sketch-line { height: 5px; background: var(--accent); border-radius: 5px; opacity: 0.9; }
@@ -67,7 +69,7 @@
         button:active { transform: scale(0.98); }
         button.secondary { background: #2a2e38; border: 1px solid #444; }
 
-        /* Рулетка */
+        /* Рулетка (Woody Drop) */
         .roulette-container {
             width: 100%; height: 140px; background: #0b0d10;
             border: 2px solid var(--primary); border-radius: 8px; overflow: hidden; position: relative;
@@ -105,11 +107,17 @@
     </div>
 
     <!-- 1. Ввод промокода (Только если нет доступа) -->
-    <div id="screen-promo" class="screen">
+    <div id="screen-promo" class="screen" style="position: relative;">
+        <!-- Картинка на фоне полупрозрачная -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://github.com/Vasiliy-katsyka/cs/blob/main/BackgroundEraser_20260309_143810302.png?raw=true') center/contain no-repeat; opacity: 0.3; z-index: 0; pointer-events: none;"></div>
+        
         <div class="sketch-box">
             <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Введи секретный код</p>
             <input type="text" id="promo-input" placeholder="CODE-XXX">
             <button onclick="checkPromo()">Открыть доступ</button>
+            
+            <!-- Ссылка на статью -->
+            <a href="#" style="display:block; margin-top:15px; color:#888; font-size:12px; text-decoration:underline;">Где взять промокод?</a>
         </div>
     </div>
 
@@ -117,21 +125,23 @@
     <div id="screen-sub" class="screen">
         <div class="glass-box">
             <h2 style="color: #ff4444">Доступ закрыт 🔒</h2>
-            <p style="margin: 15px 0; color: #ccc; line-height: 1.5;">Промокод верный, но ты не подписан на канал.</p>
+            <p style="margin: 15px 0; color: #ccc; line-height: 1.5;">Для участия необходимо быть подписанным на канал.</p>
             <button onclick="window.Telegram.WebApp.openTelegramLink('https://t.me/compacttelegram')">Подписаться</button>
             <button class="secondary" onclick="checkPromo()">Проверить подписку</button>
         </div>
     </div>
 
-    <!-- 3. Рулетка (Показывается пока нет Трейд ссылки) -->
+    <!-- 3. Woody Drop (Показывается пока нет Трейд ссылки и есть прокруты) -->
     <div id="screen-roulette" class="screen">
         <div class="glass-box" style="padding: 15px">
-            <h2 style="margin-bottom:15px; text-shadow: 0 0 10px var(--primary);">Рулетка</h2>
+            <h2 style="margin-bottom:15px; text-shadow: 0 0 10px var(--primary);">Woody Drop</h2>
             <div class="roulette-container">
                 <div class="tape" id="roulette-tape"></div>
             </div>
-            <p style="margin-top:15px; font-size: 14px; color:#aaa;">Баланс круток: <b style="color:#fff; font-size:18px" id="r-spins">0</b></p>
-            <button id="spin-btn" onclick="spinRoulette()">КРУТИТЬ</button>
+            
+            <!-- Баланс прокрутов убран по задаче -->
+            
+            <button id="spin-btn" onclick="spinRoulette()">ПРОКРУТИТЬ</button>
             
             <div id="nav-to-dash" style="display:none; margin-top: 15px; border-top: 1px solid #333; padding-top:10px;">
                 <button class="secondary" onclick="showScreen('screen-dashboard')">В меню (к друзьям)</button>
@@ -153,21 +163,21 @@
         </div>
     </div>
 
-    <!-- 5. Дашборд (Главное меню - доступно ТОЛЬКО после ввода Трейда) -->
+    <!-- 5. Дашборд (Главное меню) -->
     <div id="screen-dashboard" class="screen">
         <div class="glass-box">
             <h2 style="margin-bottom:20px;">Твой Профиль</h2>
             
             <div class="stat-block"><span>Друзей приглашено:</span><strong id="d-friends" style="color:var(--accent)">0</strong></div>
-            <div class="stat-block"><span>Доступно круток:</span><strong id="d-spins">0</strong></div>
+            <div class="stat-block"><span>Доступно прокрутов:</span><strong id="d-spins">0</strong></div>
             
             <div style="margin-top:25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
-                <p style="font-size:12px; color:#aaa; margin-bottom:5px;">Твоя ссылка для друзей (+1 крутка):</p>
+                <p style="font-size:12px; color:#aaa; margin-bottom:5px;">Твоя ссылка для друзей (+1 прокрут):</p>
                 <input type="text" id="ref-link" readonly style="font-size: 11px; padding: 10px; color: var(--primary); border-color: #333;" onclick="this.select()">
                 <button onclick="copyRef()" style="margin-top: 5px; padding: 10px; font-size: 12px;">Копировать</button>
             </div>
             
-            <button class="secondary" onclick="goToRoulette()" style="margin-top: 25px;">Играть в рулетку</button>
+            <button class="secondary" onclick="goToRoulette()" style="margin-top: 25px;">Прокрутить</button>
         </div>
     </div>
 
@@ -176,9 +186,9 @@
         <div class="glass-box">
             <h3 style="text-align:center; margin-bottom:15px; color:var(--accent)">ADMIN PANEL</h3>
             
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; text-align:center; margin-bottom:15px;">
+            <!-- Убрано количество побед -->
+            <div style="display:grid; grid-template-columns: 1fr; gap:10px; text-align:center; margin-bottom:15px;">
                 <div style="background:#222; padding:5px; border-radius:5px;">Юзеров<br><b id="a-users">0</b></div>
-                <div style="background:#222; padding:5px; border-radius:5px;">Побед<br><b id="a-wins">0</b></div>
             </div>
 
             <p style="font-size:12px; color:#888; margin-bottom:5px;">Генерация промокода:</p>
@@ -269,10 +279,9 @@
         const user = data.user;
         const friends = data.friends;
 
-        // Заполняем дашборд данными (на будущее)
+        // Заполняем дашборд данными
         document.getElementById('d-friends').innerText = friends;
         document.getElementById('d-spins').innerText = user.spins;
-        document.getElementById('r-spins').innerText = user.spins;
         document.getElementById('ref-link').value = `https://t.me/${BOT_USERNAME}?start=${tg_id}`;
 
         // Кнопка админки
@@ -285,13 +294,21 @@
             // 1. Нет доступа -> Промокод
             showScreen('screen-promo');
         } else {
-            // Доступ есть. Проверяем, ввел ли Трейд.
+            // Проверяем подписку при КАЖДОМ открытии для юзеров с доступом
+            const subCheck = await api('/promo', 'POST', { code: "RECHECK" });
+            if (subCheck.error === "not_subbed") {
+                return showScreen('screen-sub');
+            }
+
+            // Доступ есть и подписка есть
             if (user.trade_url && user.trade_url.length > 5) {
                 // Трейд есть -> Главное меню (Дашборд)
                 showScreen('screen-dashboard');
-                // Если есть спины, покажем кнопку перехода в рулетку в дашборде
+            } else if (user.spins <= 0) {
+                // Если с промокода уже крутил и прокрутов нет -> Главное меню
+                showScreen('screen-dashboard');
             } else {
-                // Трейда нет -> Рулетка (чтобы выиграть и ввести трейд)
+                // Трейда нет и есть прокруты -> Woody Drop
                 generateTape();
                 showScreen('screen-roulette');
             }
@@ -319,7 +336,7 @@
         }
     }
 
-    // --- РУЛЕТКА ---
+    // --- WOODY DROP ---
     function generateTape() {
         const tape = document.getElementById('roulette-tape');
         tape.innerHTML = '';
@@ -343,14 +360,11 @@
         
         if (res.error) {
             btn.disabled = false;
-            btn.innerText = "КРУТИТЬ";
+            btn.innerText = "ПРОКРУТИТЬ";
             return tg.showAlert(res.error);
         }
 
         currentPrize = res.prize;
-        // Обновляем счетчик визульно
-        let spinsNow = parseInt(document.getElementById('r-spins').innerText);
-        document.getElementById('r-spins').innerText = Math.max(0, spinsNow - 1);
 
         // Настраиваем ленту
         const targetIndex = 60; // Индекс победного элемента
@@ -382,7 +396,7 @@
             document.getElementById('win-name').innerText = currentPrize.name;
             showScreen('screen-win');
             btn.disabled = false;
-            btn.innerText = "КРУТИТЬ";
+            btn.innerText = "ПРОКРУТИТЬ";
         }, 6500);
     }
 
@@ -407,7 +421,7 @@
 
     function goToRoulette() {
         let s = parseInt(document.getElementById('d-spins').innerText);
-        if (s <= 0) return tg.showAlert("У тебя 0 круток! Зови друзей.");
+        if (s <= 0) return tg.showAlert("У тебя 0 прокрутов! Зови друзей.");
         
         document.getElementById('nav-to-dash').style.display = 'block'; // Показать кнопку "Назад"
         generateTape();
@@ -424,7 +438,6 @@
     async function loadAdminStats() {
         const res = await api('/admin/stats');
         document.getElementById('a-users').innerText = res.users;
-        document.getElementById('a-wins').innerText = res.wins;
         
         const list = document.getElementById('pending-list');
         list.innerHTML = '';
