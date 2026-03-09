@@ -38,7 +38,6 @@
             width: 100%;
             background: transparent;
             box-shadow: inset 0 0 20px rgba(255, 179, 0, 0.05);
-            transform: rotate(-1deg); /* Легкий наклон */
         }
         .sketch-lines { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 30px; }
         .sketch-line { height: 5px; background: var(--accent); border-radius: 5px; opacity: 0.9; }
@@ -108,11 +107,6 @@
     <!-- 1. Ввод промокода (Только если нет доступа) -->
     <div id="screen-promo" class="screen">
         <div class="sketch-box">
-            <div class="sketch-lines">
-                <div class="sketch-line"></div>
-                <div class="sketch-line"></div>
-                <div class="sketch-line"></div>
-            </div>
             <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Введи секретный код</p>
             <input type="text" id="promo-input" placeholder="CODE-XXX">
             <button onclick="checkPromo()">Открыть доступ</button>
