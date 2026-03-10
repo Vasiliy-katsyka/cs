@@ -98,7 +98,8 @@
 
     <!-- 1. Ввод промокода -->
     <div id="screen-promo" class="screen">
-        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: url('https://github.com/Vasiliy-katsyka/cs/blob/main/BackgroundEraser_20260309_143810302.png?raw=true') center/cover no-repeat; opacity: 0.3; z-index: -1; pointer-events: none;"></div>
+        <!-- Починил ссылку на картинку (raw.githubusercontent.com) -->
+        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: url('https://raw.githubusercontent.com/Vasiliy-katsyka/cs/main/BackgroundEraser_20260309_143810302.png') center/cover no-repeat; opacity: 0.3; z-index: -1; pointer-events: none;"></div>
         
         <div class="sketch-box">
             <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase;">Введи промокод</p>
@@ -212,7 +213,7 @@
     // ==========================================
     const API_URL = "https://cs.kviappsgames.workers.dev/api"; 
     const BOT_USERNAME = "csrouelle_bot"; 
-    const IMGBB_API_KEY = "6f94062ede3563d2539b1f2ae8ee6e36"; // <-- ВСТАВЬ КЛЮЧ СЮДА
+    const IMGBB_API_KEY = "ТВОЙ_КЛЮЧ_ОТ_IMGBB"; // <-- ВСТАВЬ КЛЮЧ СЮДА
     // ==========================================
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -244,7 +245,8 @@
     }
 
     // --- ГЛАВНАЯ ЛОГИКА ---
-    async function initApp() {
+    // Добавлен аргумент "goToRouletteAfter" для мгновенного перехода в рулетку
+    async function initApp(goToRouletteAfter = false) {
         showScreen('screen-loading');
         const data = await api('/init');
         if (data.error) return tg.showAlert("Ошибка данных");
@@ -262,22 +264,18 @@
             return showScreen('screen-promo');
         } 
 
-        // Проверяем подписку
         const subCheck = await api('/promo', 'POST', { code: "RECHECK" });
         if (subCheck.error === "not_subbed") {
             return showScreen('screen-sub');
         }
 
-        // Рендерим кнопки в дашборде
         const btnContainer = document.getElementById('action-btn-container');
         if (data.unclaimed_win) {
-            // Если есть не забранный приз
             unclaimedWinId = data.unclaimed_win.id;
             currentPrize = { name: data.unclaimed_win.prize_name, image_url: data.unclaimed_win.image_url || 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQiiOuQpoml3wW18xdkNTjxd9CQdwM_ZlrT-lW_k-e-gJ-Iu8yYzyEwuSE8pSGK2A/256fx256f' };
             
             btnContainer.innerHTML = `<button class="danger" onclick="openClaimScreen()">ЗАБРАТЬ ПРИЗ</button>`;
         } else {
-            // Обычная кнопка рулетки
             unclaimedWinId = null;
             if (user.spins > 0) {
                 btnContainer.innerHTML = `<button onclick="goToRoulette()">КРУТИТЬ РУЛЕТКУ</button>`;
@@ -286,7 +284,12 @@
             }
         }
 
-        showScreen('screen-dashboard');
+        // Логика перехода: Если юзер только что ввел промокод, у него есть спины и нет старых призов -> кидаем сразу в рулетку
+        if (goToRouletteAfter && user.spins > 0 && !data.unclaimed_win) {
+            goToRoulette();
+        } else {
+            showScreen('screen-dashboard');
+        }
     }
 
     // --- ПРОМОКОД ---
@@ -307,8 +310,8 @@
             tg.showAlert(res.error);
             showScreen('screen-promo');
         } else if (res.success) {
-            tg.showAlert("Успешно!");
-            initApp();
+            // Без алерта "Успешно". Обновляем данные и принудительно кидаем в рулетку
+            initApp(true);
         }
     }
 
@@ -338,7 +341,7 @@
         }
 
         currentPrize = res.prize;
-        unclaimedWinId = res.win_id; // Сервер сразу бронирует ID выигрыша
+        unclaimedWinId = res.win_id; 
 
         const targetIndex = 60;
         const targetEl = document.getElementById(`item-${targetIndex}`);
@@ -419,7 +422,13 @@
 
     async function genPromo(n) {
         const res = await api('/admin/promo', 'POST', { uses: n });
-        prompt("Скопируй промокод:", res.code);
+        // Убрали всплывающее окно prompt. Сразу копируем код и показываем алерт
+        navigator.clipboard.writeText(res.code).then(() => {
+            tg.showAlert(`Секретный код скопирован: ${res.code}`);
+        }).catch(err => {
+            // Фолбек, если буфер обмена заблокирован в некоторых браузерах без прямого клика
+            tg.showAlert(`Код сгенерирован: ${res.code} (запиши его)`);
+        });
     }
 
     async function sendBroadcast() {
@@ -430,7 +439,6 @@
         alert(`Отправлено: ${res.count}`);
     }
 
-    // Загрузка картинки на ImgBB и сохранение в базу
     async function addPrize() {
         const btn = document.getElementById('btn-add-prize');
         const name = document.getElementById('p-name').value;
@@ -442,7 +450,6 @@
         btn.innerText = "Загрузка..."; btn.disabled = true;
 
         try {
-            // 1. Отправляем картинку на ImgBB
             const formData = new FormData();
             formData.append("image", fileInput.files[0]);
             
@@ -452,7 +459,6 @@
             if (!imgData.success) throw new Error("Ошибка загрузки картинки на сервер.");
             const imageUrl = imgData.data.url;
 
-            // 2. Отправляем URL в нашу базу
             await api('/admin/prize', 'POST', { name: name, image_url: imageUrl, chance: parseInt(chance) });
             
             alert("Скин успешно добавлен!");
