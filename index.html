@@ -246,7 +246,7 @@
 
     // --- ГЛАВНАЯ ЛОГИКА ---
     // Добавлен аргумент "goToRouletteAfter" для мгновенного перехода в рулетку
-    async function initApp(goToRouletteAfter = false) {
+    async function initApp() {
         showScreen('screen-loading');
         const data = await api('/init');
         if (data.error) return tg.showAlert("Ошибка данных");
@@ -284,18 +284,7 @@
             }
         }
 
-        // Логика перехода: Если юзер только что ввел промокод, у него есть спины и нет старых призов -> кидаем сразу в рулетку
-        if (goToRouletteAfter && user.spins > 0 && !data.unclaimed_win) {
-            goToRoulette();
-        } else {
-            showScreen('screen-dashboard');
-        }
-    }
-
-    // --- ПРОМОКОД ---
-    function openPromoScreen() {
-        document.getElementById('btn-back-to-dash').style.display = 'block';
-        showScreen('screen-promo');
+        showScreen('screen-dashboard');
     }
 
     async function checkPromo() {
@@ -310,9 +299,20 @@
             tg.showAlert(res.error);
             showScreen('screen-promo');
         } else if (res.success) {
-            // Без алерта "Успешно". Обновляем данные и принудительно кидаем в рулетку
-            initApp(true);
+            // Дожидаемся обновления данных (даже если база затупит)
+            await initApp();
+            
+            // И ЖЕСТКО перекидываем в рулетку (если у человека нет незабранных старых призов)
+            if (!unclaimedWinId) {
+                goToRoulette();
+            }
         }
+    }
+
+    // --- ПРОМОКОД ---
+    function openPromoScreen() {
+        document.getElementById('btn-back-to-dash').style.display = 'block';
+        showScreen('screen-promo');
     }
 
     // --- РУЛЕТКА ---
