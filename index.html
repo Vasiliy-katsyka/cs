@@ -47,9 +47,7 @@
             color: #fff; border-radius: 8px; outline: none; font-size: 16px; font-weight: bold;
         }
         
-        input[type="file"] {
-            font-size: 12px; padding: 10px; border: 1px solid #444; background: #1a1d24; cursor: pointer;
-        }
+        input[type="file"] { font-size: 12px; padding: 10px; border: 1px solid #444; background: #1a1d24; cursor: pointer; }
         
         button {
             width: 100%; padding: 16px; margin-top: 15px;
@@ -59,7 +57,9 @@
         }
         button:active { transform: scale(0.98); }
         button.secondary { background: #2a2e38; border: 1px solid #444; }
+        button.success { background: linear-gradient(135deg, #2ecc71, #27ae60); }
         button.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); animation: pulse 1.5s infinite; }
+        button:disabled { background: #555; color: #888; animation: none; cursor: not-allowed; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
@@ -82,62 +82,65 @@
         .item span { font-size: 11px; color: #888; margin-top: 8px; max-width: 110px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
         .stat-block { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .inv-item { display: flex; align-items: center; gap: 10px; background: #1a1d24; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
+        .inv-item img { width: 50px; height: 40px; object-fit: contain; }
+        
         .admin-item { background: #1a1d24; padding: 10px; margin-bottom: 8px; border-radius: 6px; font-size: 12px; border-left: 3px solid var(--primary); }
 
-        #admin-entry-btn { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.5); width: auto; padding: 5px 10px; font-size: 10px; border: 1px solid #333; z-index: 999; }
+        #admin-entry-btn { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; font-size: 10px; border: 1px solid #333; z-index: 999; }
+        #lang-btn { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px 10px; font-size: 12px; border: 1px solid #333; z-index: 999; cursor: pointer; font-weight: bold; border-radius: 5px;}
     </style>
 </head>
 <body>
 
+    <button id="lang-btn" onclick="toggleLang()">🇷🇺 RU</button>
     <button id="admin-entry-btn" style="display:none;" onclick="showScreen('screen-admin'); loadAdminStats();">ADMIN</button>
 
     <!-- 0. Загрузка -->
     <div id="screen-loading" class="screen active">
-        <h2 style="color:var(--accent)">Загрузка...</h2>
+        <h2 style="color:var(--accent)" data-i18n="loading">Загрузка...</h2>
     </div>
 
     <!-- 1. Ввод промокода -->
     <div id="screen-promo" class="screen">
-        <!-- Починил ссылку на картинку (raw.githubusercontent.com) -->
         <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: url('https://raw.githubusercontent.com/Vasiliy-katsyka/cs/main/BackgroundEraser_20260309_143810302.png') center/cover no-repeat; opacity: 0.3; z-index: -1; pointer-events: none;"></div>
         
         <div class="sketch-box">
-            <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase;">Введи промокод</p>
+            <p style="margin-bottom: 15px; color: var(--accent); font-weight: bold; text-transform: uppercase;" data-i18n="enter_promo">Введи промокод</p>
             <input type="text" id="promo-input" placeholder="CODE-XXX">
-            <button onclick="checkPromo()">Активировать</button>
-            <button class="secondary" onclick="showScreen('screen-dashboard')" style="margin-top:10px; display:none;" id="btn-back-to-dash">Назад в меню</button>
+            <button onclick="checkPromo()" data-i18n="activate">Активировать</button>
+            <button class="secondary" onclick="showScreen('screen-dashboard')" style="margin-top:10px; display:none;" id="btn-back-to-dash" data-i18n="back_menu">Назад в меню</button>
         </div>
     </div>
 
     <!-- 2. Подписка -->
     <div id="screen-sub" class="screen">
         <div class="glass-box">
-            <h2 style="color: #ff4444">Доступ закрыт 🔒</h2>
-            <p style="margin: 15px 0; color: #ccc; line-height: 1.5;">Для участия необходимо быть подписанным на канал.</p>
-            <button onclick="window.Telegram.WebApp.openTelegramLink('https://t.me/woodystrem')">Подписаться</button>
-            <button class="secondary" onclick="checkPromo()">Проверить подписку</button>
+            <h2 style="color: #ff4444" data-i18n="access_denied">Доступ закрыт 🔒</h2>
+            <p style="margin: 15px 0; color: #ccc; line-height: 1.5;" data-i18n="sub_text">Для участия необходимо быть подписанным на канал.</p>
+            <button onclick="window.Telegram.WebApp.openTelegramLink('https://t.me/compacttelegram')" data-i18n="btn_sub">Подписаться</button>
+            <button class="secondary" onclick="checkPromo()" data-i18n="btn_check">Проверить подписку</button>
         </div>
     </div>
 
-    <!-- 3. Дашборд (Главное меню) -->
+    <!-- 3. Дашборд -->
     <div id="screen-dashboard" class="screen">
         <div class="glass-box">
-            <h2 style="margin-bottom:20px;">Личный Кабинет</h2>
+            <h2 style="margin-bottom:20px;" data-i18n="dashboard_title">Личный Кабинет</h2>
             
-            <div class="stat-block"><span>Друзей приглашено:</span><strong id="d-friends" style="color:var(--accent)">0</strong></div>
-            <div class="stat-block"><span>Доступно прокрутов:</span><strong id="d-spins">0</strong></div>
+            <div class="stat-block"><span data-i18n="stat_friends">Друзей приглашено:</span><strong id="d-friends" style="color:var(--accent)">0</strong></div>
+            <div class="stat-block"><span data-i18n="stat_spins">Доступно прокрутов:</span><strong id="d-spins">0</strong></div>
             
             <div style="margin-top:25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
-                <p style="font-size:12px; color:#aaa; margin-bottom:5px;">Твоя ссылка для друзей:</p>
-                <input type="text" id="ref-link" readonly style="font-size: 11px; padding: 10px; color: var(--primary); border-color: #333;" onclick="this.select()">
-                <button onclick="copyRef()" style="margin-top: 5px; padding: 10px; font-size: 12px;" class="secondary">Копировать</button>
+                <p style="font-size:12px; color:#aaa; margin-bottom:5px; white-space: pre-line;" data-i18n="invite_text">Приглашай друзей\nОдин друг = одна прокрутка</p>
+                <button onclick="inviteFriend()" style="margin-top: 5px; padding: 10px; font-size: 14px;" class="success" data-i18n="btn_invite">ПРИГЛАСИТЬ</button>
             </div>
             
-            <button class="secondary" onclick="openPromoScreen()" style="margin-top: 25px;">Ввести промокод</button>
+            <button class="secondary" onclick="openPromoScreen()" style="margin-top: 25px;" data-i18n="btn_promo">Ввести промокод</button>
             
-            <div id="action-btn-container">
-                <!-- Сюда подставится кнопка "Крутить" или "Забрать приз" -->
-            </div>
+            <div id="action-btn-container" style="margin-top: 15px;"></div>
+            <button class="secondary" onclick="openInventory()" style="margin-top: 10px; border-color: var(--primary);" data-i18n="btn_inventory">📦 ИНВЕНТАРЬ</button>
         </div>
     </div>
 
@@ -149,33 +152,36 @@
                 <div class="tape" id="roulette-tape"></div>
             </div>
             
-            <button id="spin-btn" onclick="spinRoulette()">ПРОКРУТИТЬ</button>
-            <button class="secondary" onclick="showScreen('screen-dashboard')">В меню</button>
+            <button id="spin-btn" onclick="spinRoulette()" data-i18n="btn_spin">ПРОКРУТИТЬ</button>
+            <button class="secondary" onclick="showScreen('screen-dashboard')" data-i18n="back_menu">В меню</button>
         </div>
     </div>
 
-    <!-- 5. Победа (Форма трейда) -->
-    <div id="screen-win" class="screen">
+    <!-- 5. Инвентарь и Вывод -->
+    <div id="screen-inventory" class="screen">
         <div class="glass-box">
-            <h2 style="color:var(--accent)">ПОБЕДА!</h2>
-            <div style="background: radial-gradient(circle, #331a00 0%, transparent 70%);">
-                <img id="win-img" src="" style="width: 160px; height: 120px; object-fit: contain; margin: 15px 0; filter: drop-shadow(0 0 10px orange);">
+            <h2 style="color:var(--accent); margin-bottom: 15px;" data-i18n="inventory_title">Твой Инвентарь</h2>
+            <div id="inventory-list" style="max-height: 200px; overflow-y:auto; margin-bottom: 15px;">
+                <!-- Сюда падают выигранные скины -->
             </div>
-            <h3 id="win-name" style="margin-bottom: 15px;">Item Name</h3>
-            <p style="font-size:12px; color: #aaa">Вставь Trade URL, чтобы забрать приз:</p>
-            <input type="text" id="trade-input" placeholder="https://steamcommunity.com/tradeoffer/...">
-            <button onclick="saveTradeAndFinish()" class="danger">ОТПРАВИТЬ ТРЕЙД</button>
-            <button class="secondary" onclick="showScreen('screen-dashboard')" style="padding:10px; margin-top:10px;">Сделаю позже</button>
+            
+            <div id="withdraw-section" style="display:none;">
+                <p style="font-size:12px; color: #aaa" data-i18n="trade_url_text">Вставь Trade URL, чтобы вывести скины:</p>
+                <input type="text" id="trade-input" placeholder="https://steamcommunity.com/tradeoffer/...">
+                <button onclick="withdrawAll()" class="danger" data-i18n="btn_withdraw_all">ВЫВЕСТИ ВСЁ</button>
+            </div>
+            
+            <button class="secondary" onclick="initApp()" style="padding:10px; margin-top:10px;" data-i18n="back_menu">Назад в меню</button>
         </div>
     </div>
 
     <!-- 6. Админка -->
     <div id="screen-admin" class="screen" style="text-align: left;">
-        <div class="glass-box">
+        <div class="glass-box" style="padding: 15px;">
             <h3 style="text-align:center; margin-bottom:15px; color:var(--accent)">ADMIN PANEL</h3>
             
-            <div style="display:grid; grid-template-columns: 1fr; gap:10px; text-align:center; margin-bottom:15px;">
-                <div style="background:#222; padding:5px; border-radius:5px;">Юзеров<br><b id="a-users">0</b></div>
+            <div style="text-align:center; background:#222; padding:5px; border-radius:5px; margin-bottom:15px;">
+                Юзеров: <b id="a-users">0</b>
             </div>
 
             <p style="font-size:12px; color:#888; margin-bottom:5px;">Генерация промокода:</p>
@@ -194,13 +200,16 @@
             <p style="font-size:12px; color:#888; margin-bottom:5px;">Добавить скин (ImgBB):</p>
             <input type="text" id="p-name" placeholder="Название скина" style="margin:0 0 5px 0; font-size:12px;">
             <input type="file" id="p-img-file" accept="image/*" style="margin:0 0 5px 0; width:100%;">
-            <input type="number" id="p-chance" placeholder="Шанс" style="margin:0 0 10px 0; font-size:12px;">
+            <input type="number" id="p-chance" placeholder="Шанс (%)" style="margin:0 0 10px 0; font-size:12px;">
             <button id="btn-add-prize" onclick="addPrize()" style="margin:0 0 15px 0; padding:10px;">Добавить в базу</button>
 
-            <h4 style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">Заявки на вывод:</h4>
-            <div id="pending-list" style="max-height: 200px; overflow-y:auto;"></div>
+            <h4 style="color:var(--primary); margin-bottom:5px;">Управление скинами:</h4>
+            <div id="admin-prizes-list" style="max-height: 150px; overflow-y:auto; margin-bottom: 15px; border: 1px solid #333; padding: 5px;"></div>
 
-            <button class="secondary" onclick="showScreen('screen-dashboard')" style="margin-top:20px">Закрыть</button>
+            <h4 style="color:var(--primary); margin-bottom:5px;">Заявки на вывод:</h4>
+            <div id="pending-list" style="max-height: 150px; overflow-y:auto;"></div>
+
+            <button class="secondary" onclick="initApp()" style="margin-top:20px">Закрыть</button>
         </div>
     </div>
 
@@ -209,18 +218,92 @@
     tg.expand();
 
     // ==========================================
-    // НАСТРОЙКИ (ЗАМЕНИ НА СВОИ!)
+    // НАСТРОЙКИ
     // ==========================================
     const API_URL = "https://cs.kviappsgames.workers.dev/api"; 
     const BOT_USERNAME = "csrouelle_bot"; 
-    const IMGBB_API_KEY = "ТВОЙ_КЛЮЧ_ОТ_IMGBB"; // <-- ВСТАВЬ КЛЮЧ СЮДА
-    // ==========================================
-
+    const IMGBB_API_KEY = "6f94062ede3563d2539b1f2ae8ee6e36"; // <-- ВСТАВЬ КЛЮЧ
+    
     const urlParams = new URLSearchParams(window.location.search);
     let tg_id = tg.initDataUnsafe?.user?.id || urlParams.get('test_id') || Math.floor(Math.random() * 1000000);
     
-    let currentPrize = null;
-    let unclaimedWinId = null;
+    let allPrizes = [];
+    let userInventory =[];
+    let currentLang = localStorage.getItem('lang') || 'ru';
+
+    const dict = {
+        ru: {
+            "loading": "Загрузка...",
+            "enter_promo": "Введи промокод",
+            "activate": "Активировать",
+            "back_menu": "Назад в меню",
+            "access_denied": "Доступ закрыт 🔒",
+            "sub_text": "Для участия необходимо быть подписанным на канал.",
+            "btn_sub": "Подписаться",
+            "btn_check": "Проверить подписку",
+            "dashboard_title": "Личный Кабинет",
+            "stat_friends": "Друзей приглашено:",
+            "stat_spins": "Доступно прокрутов:",
+            "invite_text": "Приглашай друзей\nОдин друг = одна прокрутка",
+            "btn_invite": "ПРИГЛАСИТЬ",
+            "btn_promo": "Ввести промокод",
+            "btn_inventory": "📦 ИНВЕНТАРЬ",
+            "btn_spin": "ПРОКРУТИТЬ",
+            "inventory_title": "Твой Инвентарь",
+            "trade_url_text": "Вставь Trade URL, чтобы вывести скины:",
+            "btn_withdraw_all": "ВЫВЕСТИ ВСЁ",
+            "empty_inv": "Инвентарь пуст",
+            "alert_ref": "Ссылка скопирована!",
+            "alert_withdraw_ok": "Заявка создана! WOODY уже отправляет приз.",
+            "alert_trade_url": "Это не похоже на Trade URL!",
+            "spin_no_spins": "НЕТ ПРОКРУТОВ",
+            "spin_btn_go": "КРУТИТЬ РУЛЕТКУ",
+            "nothing": "ПУСТО"
+        },
+        en: {
+            "loading": "Loading...",
+            "enter_promo": "Enter Promo Code",
+            "activate": "Activate",
+            "back_menu": "Back to menu",
+            "access_denied": "Access Denied 🔒",
+            "sub_text": "You must be subscribed to the channel to participate.",
+            "btn_sub": "Subscribe",
+            "btn_check": "Check Subscription",
+            "dashboard_title": "Dashboard",
+            "stat_friends": "Friends invited:",
+            "stat_spins": "Spins available:",
+            "invite_text": "Invite friends\nOne friend = one spin",
+            "btn_invite": "INVITE",
+            "btn_promo": "Enter Promo Code",
+            "btn_inventory": "📦 INVENTORY",
+            "btn_spin": "SPIN",
+            "inventory_title": "Your Inventory",
+            "trade_url_text": "Insert Trade URL to withdraw skins:",
+            "btn_withdraw_all": "WITHDRAW ALL",
+            "empty_inv": "Inventory is empty",
+            "alert_ref": "Link copied!",
+            "alert_withdraw_ok": "Request created! WOODY is sending the prize.",
+            "alert_trade_url": "This doesn't look like a Trade URL!",
+            "spin_no_spins": "NO SPINS",
+            "spin_btn_go": "SPIN ROULETTE",
+            "nothing": "NOTHING"
+        }
+    };
+
+    function updateLanguageUI() {
+        document.getElementById('lang-btn').innerText = currentLang === 'ru' ? '🇷🇺 RU' : '🇬🇧 EN';
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[currentLang][key]) el.innerText = dict[currentLang][key];
+        });
+    }
+
+    function toggleLang() {
+        currentLang = currentLang === 'ru' ? 'en' : 'ru';
+        localStorage.setItem('lang', currentLang);
+        updateLanguageUI();
+        initApp(); // Освежаем кнопки
+    }
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -239,52 +322,44 @@
             const req = await fetch(url, options);
             return await req.json();
         } catch (e) {
-            tg.showAlert("Ошибка соединения с сервером");
+            tg.showAlert("Network error");
             return { error: "Network error" };
         }
     }
 
-    // --- ГЛАВНАЯ ЛОГИКА ---
-    // Добавлен аргумент "goToRouletteAfter" для мгновенного перехода в рулетку
     async function initApp() {
+        updateLanguageUI();
         showScreen('screen-loading');
+        
         const data = await api('/init');
-        if (data.error) return tg.showAlert("Ошибка данных");
+        if (data.error) return tg.showAlert("Data error");
 
         const user = data.user;
-        const friends = data.friends;
+        allPrizes = data.prizes ||[];
+        userInventory = data.inventory ||[];
 
-        document.getElementById('d-friends').innerText = friends;
+        document.getElementById('d-friends').innerText = data.friends;
         document.getElementById('d-spins').innerText = user.spins;
-        document.getElementById('ref-link').value = `https://t.me/${BOT_USERNAME}?start=${tg_id}`;
 
         if (data.isAdmin) document.getElementById('admin-entry-btn').style.display = 'block';
 
-        if (user.has_access === 0) {
-            return showScreen('screen-promo');
-        } 
-
-        const subCheck = await api('/promo', 'POST', { code: "RECHECK" });
-        if (subCheck.error === "not_subbed") {
-            return showScreen('screen-sub');
-        }
+        if (user.has_access === 0) return showScreen('screen-promo');
 
         const btnContainer = document.getElementById('action-btn-container');
-        if (data.unclaimed_win) {
-            unclaimedWinId = data.unclaimed_win.id;
-            currentPrize = { name: data.unclaimed_win.prize_name, image_url: data.unclaimed_win.image_url || 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQiiOuQpoml3wW18xdkNTjxd9CQdwM_ZlrT-lW_k-e-gJ-Iu8yYzyEwuSE8pSGK2A/256fx256f' };
-            
-            btnContainer.innerHTML = `<button class="danger" onclick="openClaimScreen()">ЗАБРАТЬ ПРИЗ</button>`;
+        if (user.spins > 0) {
+            btnContainer.innerHTML = `<button onclick="goToRoulette()">${dict[currentLang].spin_btn_go}</button>`;
         } else {
-            unclaimedWinId = null;
-            if (user.spins > 0) {
-                btnContainer.innerHTML = `<button onclick="goToRoulette()">КРУТИТЬ РУЛЕТКУ</button>`;
-            } else {
-                btnContainer.innerHTML = `<button style="background:#555; color:#888;" disabled>НЕТ ПРОКРУТОВ</button>`;
-            }
+            btnContainer.innerHTML = `<button style="background:#555; color:#888;" disabled>${dict[currentLang].spin_no_spins}</button>`;
         }
 
         showScreen('screen-dashboard');
+    }
+
+    // --- ПРИГЛАШЕНИЕ ДРУЗЕЙ ---
+    function inviteFriend() {
+        const link = `https://t.me/${BOT_USERNAME}?start=${tg_id}`;
+        const text = encodeURIComponent(currentLang === 'ru' ? "Заходи крутить рулетку CS2 и забирай скины! 🎁" : "Come spin the CS2 roulette and get skins! 🎁");
+        tg.openTelegramLink(`https://t.me/share/url?url=${link}&text=${text}`);
     }
 
     async function checkPromo() {
@@ -293,23 +368,14 @@
         showScreen('screen-loading');
         const res = await api('/promo', 'POST', { code: code || "RECHECK" });
 
-        if (res.error === "not_subbed") {
-            showScreen('screen-sub');
-        } else if (res.error) {
-            tg.showAlert(res.error);
-            showScreen('screen-promo');
-        } else if (res.success) {
-            // Дожидаемся обновления данных (даже если база затупит)
+        if (res.error === "not_subbed") showScreen('screen-sub');
+        else if (res.error) { tg.showAlert(res.error); showScreen('screen-promo'); }
+        else if (res.success) {
             await initApp();
-            
-            // И ЖЕСТКО перекидываем в рулетку (если у человека нет незабранных старых призов)
-            if (!unclaimedWinId) {
-                goToRoulette();
-            }
+            goToRoulette();
         }
     }
 
-    // --- ПРОМОКОД ---
     function openPromoScreen() {
         document.getElementById('btn-back-to-dash').style.display = 'block';
         showScreen('screen-promo');
@@ -326,27 +392,36 @@
         tape.innerHTML = '';
         tape.style.transition = 'none';
         tape.style.transform = 'translateX(0)';
-        const dummy = 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppQiiOuQpoml3wW18xdkNTjxd9CQdwM_ZlrT-lW_k-e-gJ-Iu8yYzyEwuSE8pSGK2A/256fx256f';
-        for(let i=0; i<80; i++) tape.innerHTML += `<div class="item" id="item-${i}"><img src="${dummy}"><span>Case Drop</span></div>`;
+        
+        // Генерируем ленту из реальных скинов
+        for(let i=0; i<80; i++) {
+            let rndItem = allPrizes.length > 0 ? allPrizes[Math.floor(Math.random() * allPrizes.length)] : { image_url: '', name: '???' };
+            tape.innerHTML += `<div class="item" id="item-${i}"><img src="${rndItem.image_url}"><span>${rndItem.name}</span></div>`;
+        }
     }
 
     async function spinRoulette() {
         const btn = document.getElementById('spin-btn');
-        btn.disabled = true; btn.innerText = "КРУТИМ...";
+        btn.disabled = true; btn.innerText = "...";
 
         const res = await api('/spin', 'POST');
         if (res.error) {
-            btn.disabled = false; btn.innerText = "ПРОКРУТИТЬ";
+            btn.disabled = false; btn.innerText = dict[currentLang].btn_spin;
             return tg.showAlert(res.error);
         }
 
-        currentPrize = res.prize;
-        unclaimedWinId = res.win_id; 
+        const wonPrize = res.prize;
 
         const targetIndex = 60;
         const targetEl = document.getElementById(`item-${targetIndex}`);
-        targetEl.innerHTML = `<img src="${currentPrize.image_url}"><span>${currentPrize.name}</span>`;
-        targetEl.style.borderTop = "3px solid var(--accent)"; targetEl.style.background = "#252b36";
+        targetEl.innerHTML = `<img src="${wonPrize.image_url}"><span>${wonPrize.is_empty ? dict[currentLang].nothing : wonPrize.name}</span>`;
+        
+        if (!wonPrize.is_empty) {
+            targetEl.style.borderTop = "3px solid var(--accent)"; 
+            targetEl.style.background = "#252b36";
+        } else {
+            targetEl.style.borderTop = "3px solid #555";
+        }
 
         const tape = document.getElementById('roulette-tape');
         const cardWidth = 134;
@@ -361,37 +436,61 @@
         }, 50);
 
         setTimeout(() => {
-            openClaimScreen();
-            btn.disabled = false; btn.innerText = "ПРОКРУТИТЬ";
+            btn.disabled = false; btn.innerText = dict[currentLang].btn_spin;
+            // Если выиграл вещь, обновляем локальный инвентарь (чтобы не делать лишний запрос к АПИ)
+            if (!wonPrize.is_empty && res.win_id) {
+                userInventory.push({ id: res.win_id, name: wonPrize.name, image_url: wonPrize.image_url });
+            }
+            
+            // Если ничего не выпало, говорим об этом
+            if (wonPrize.is_empty) {
+                tg.showAlert(currentLang === 'ru' ? "К сожалению, в этот раз пусто :(" : "Unfortunately, it's empty this time :(");
+            }
+            
+            // Обновляем циферку прокрутов сразу
+            const currentSpins = parseInt(document.getElementById('d-spins').innerText);
+            document.getElementById('d-spins').innerText = currentSpins - 1;
+            
         }, 6500);
     }
 
-    // --- ФОРМА ВЫВОДА ---
-    function openClaimScreen() {
-        document.getElementById('win-img').src = currentPrize.image_url;
-        document.getElementById('win-name').innerText = currentPrize.name;
-        showScreen('screen-win');
+    // --- ИНВЕНТАРЬ ---
+    function openInventory() {
+        const list = document.getElementById('inventory-list');
+        const withdrawSection = document.getElementById('withdraw-section');
+        list.innerHTML = '';
+        
+        if (userInventory.length === 0) {
+            list.innerHTML = `<div style="text-align:center; color:#555; padding: 20px;">${dict[currentLang].empty_inv}</div>`;
+            withdrawSection.style.display = 'none';
+        } else {
+            userInventory.forEach(item => {
+                list.innerHTML += `
+                <div class="inv-item">
+                    <img src="${item.image_url}">
+                    <span style="font-weight:bold; font-size:14px;">${item.name}</span>
+                </div>`;
+            });
+            withdrawSection.style.display = 'block';
+        }
+        showScreen('screen-inventory');
     }
 
-    async function saveTradeAndFinish() {
+    async function withdrawAll() {
         const urlInput = document.getElementById('trade-input').value;
-        if (!urlInput.includes('steamcommunity.com/tradeoffer')) return tg.showAlert("Это не похоже на Trade URL!");
+        if (!urlInput.includes('steamcommunity.com/tradeoffer')) return tg.showAlert(dict[currentLang].alert_trade_url);
 
         showScreen('screen-loading');
-        const res = await api('/trade', 'POST', { tradeUrl: urlInput, win_id: unclaimedWinId });
+        const res = await api('/trade', 'POST', { tradeUrl: urlInput });
         
         if (res.success) {
-            tg.showAlert("Заявка создана! Админ скоро отправит трейд.");
+            tg.showAlert(dict[currentLang].alert_withdraw_ok);
+            userInventory =[]; // Очищаем локально после вывода
             initApp(); 
         } else {
             tg.showAlert(res.error || "Ошибка сохранения");
-            showScreen('screen-win');
+            openInventory();
         }
-    }
-
-    function copyRef() {
-        navigator.clipboard.writeText(document.getElementById('ref-link').value);
-        tg.showAlert("Ссылка скопирована!");
     }
 
     // --- АДМИНКА ---
@@ -399,17 +498,31 @@
         const res = await api('/admin/stats');
         document.getElementById('a-users').innerText = res.users;
         
-        const list = document.getElementById('pending-list');
-        list.innerHTML = '';
-        if (res.pending.length === 0) list.innerHTML = '<div style="font-size:12px; color:#555; text-align:center">Нет заявок</div>';
-        
+        // Список заявок
+        const pList = document.getElementById('pending-list');
+        pList.innerHTML = '';
+        if (res.pending.length === 0) pList.innerHTML = '<div style="font-size:12px; color:#555; text-align:center">Нет заявок</div>';
         res.pending.forEach(p => {
-            list.innerHTML += `
+            pList.innerHTML += `
             <div class="admin-item">
                 <div style="font-weight:bold; color:#fff">${p.prize_name}</div>
                 <div style="color:#aaa; font-size:10px; margin:3px 0">ID: ${p.tg_id}</div>
                 <a href="${p.trade_url}" target="_blank" style="color:var(--accent); text-decoration:none;">Открыть Трейд</a>
-                <button onclick="issuePrize(${p.id}, ${p.tg_id}, '${p.prize_name}')" style="width:100%; margin-top:5px; padding:8px; background:#2ecc71;">✅ Выдано</button>
+                <button onclick="issuePrize(${p.id}, ${p.tg_id}, '${p.prize_name}')" style="width:100%; margin-top:5px; padding:8px;" class="success">✅ Выдано</button>
+            </div>`;
+        });
+
+        // Список скинов для управления
+        const sList = document.getElementById('admin-prizes-list');
+        sList.innerHTML = '';
+        res.prizes.forEach(p => {
+            sList.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#111; padding:5px; margin-bottom:5px; border-radius:5px;">
+                <div style="font-size:10px; display:flex; align-items:center; gap:5px;">
+                    <img src="${p.image_url}" width="30">
+                    <div><b>${p.name}</b><br><span style="color:#aaa">Шанс: ${p.chance}%</span></div>
+                </div>
+                <button onclick="deletePrize(${p.id})" style="width:auto; margin:0; padding:5px 10px; font-size:10px;" class="danger">Удалить</button>
             </div>`;
         });
     }
@@ -420,15 +533,17 @@
         loadAdminStats();
     }
 
+    async function deletePrize(id) {
+        if(!confirm("Удалить этот скин из рулетки?")) return;
+        await api('/admin/prize_delete', 'POST', { id: id });
+        loadAdminStats();
+    }
+
     async function genPromo(n) {
         const res = await api('/admin/promo', 'POST', { uses: n });
-        // Убрали всплывающее окно prompt. Сразу копируем код и показываем алерт
         navigator.clipboard.writeText(res.code).then(() => {
-            tg.showAlert(`Секретный код скопирован: ${res.code}`);
-        }).catch(err => {
-            // Фолбек, если буфер обмена заблокирован в некоторых браузерах без прямого клика
-            tg.showAlert(`Код сгенерирован: ${res.code} (запиши его)`);
-        });
+            tg.showAlert(`Код скопирован: ${res.code}`);
+        }).catch(err => { tg.showAlert(`Код: ${res.code}`); });
     }
 
     async function sendBroadcast() {
@@ -456,21 +571,20 @@
             const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
             const imgData = await imgRes.json();
             
-            if (!imgData.success) throw new Error("Ошибка загрузки картинки на сервер.");
+            if (!imgData.success) throw new Error("Ошибка загрузки картинки.");
             const imageUrl = imgData.data.url;
 
-            await api('/admin/prize', 'POST', { name: name, image_url: imageUrl, chance: parseInt(chance) });
+            await api('/admin/prize', 'POST', { name: name, image_url: imageUrl, chance: parseFloat(chance) });
             
             alert("Скин успешно добавлен!");
             document.getElementById('p-name').value = '';
             document.getElementById('p-img-file').value = '';
-        } catch (e) {
-            alert(e.message);
-        } finally {
-            btn.innerText = "Добавить в базу"; btn.disabled = false;
-        }
+            loadAdminStats(); // Сразу обновляем список
+        } catch (e) { alert(e.message); } 
+        finally { btn.innerText = "Добавить в базу"; btn.disabled = false; }
     }
 
+    // Старт
     initApp();
 
 </script>
