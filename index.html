@@ -167,6 +167,21 @@
         </div>
     </div>
 
+    <!-- НОВЫЙ ЭКРАН ПОСЛЕ ВЫИГРЫША -->
+    <div id="screen-claim" class="screen">
+        <div class="glass-box">
+            <h2 style="color: #2ecc71; margin-bottom: 10px;" data-i18n="claim_title">🎉 Ты выиграл!</h2>
+            <img id="claim-img" src="" style="width:120px; height: 100px; object-fit: contain; margin: 15px 0; filter: drop-shadow(0 0 10px rgba(255, 179, 0, 0.5));">
+            <h3 id="claim-name" style="margin-bottom: 15px;">Скин</h3>
+            
+            <p style="font-size:12px; color: #aaa; margin-top:10px;" data-i18n="claim_text">Введи Trade URL, чтобы сразу забрать предмет:</p>
+            <input type="text" id="claim-trade-input" placeholder="https://steamcommunity.com/tradeoffer/...">
+            
+            <button onclick="claimItemFromWin()" class="success" data-i18n="btn_claim_now">ЗАБРАТЬ СЕЙЧАС</button>
+            <button class="secondary" onclick="showScreen('screen-dashboard')" data-i18n="btn_claim_later">В ИНВЕНТАРЬ (на потом)</button>
+        </div>
+    </div>
+
     <!-- 5. Инвентарь и Вывод -->
     <div id="screen-inventory" class="screen">
         <div class="glass-box">
@@ -232,12 +247,12 @@
     // ==========================================
     const API_URL = "https://cs.kviappsgames.workers.dev/api"; 
     const BOT_USERNAME = "csrouelle_bot"; 
-    const IMGBB_API_KEY = "6f94062ede3563d2539b1f2ae8ee6e36"; // <-- ВСТАВЬ КЛЮЧ
+    const IMGBB_API_KEY = "6f94062ede3563d2539b1f2ae8ee6e36"; 
     
     const urlParams = new URLSearchParams(window.location.search);
     let tg_id = tg.initDataUnsafe?.user?.id || urlParams.get('test_id') || Math.floor(Math.random() * 1000000);
     
-    let allPrizes = [];
+    let allPrizes =[];
     let userInventory =[];
     let currentLang = localStorage.getItem('lang') || 'ru';
 
@@ -268,7 +283,11 @@
             "alert_trade_url": "Это не похоже на Trade URL!",
             "spin_no_spins": "НЕТ ПРОКРУТОВ",
             "spin_btn_go": "КРУТИТЬ РУЛЕТКУ",
-            "nothing": "ПУСТО"
+            "nothing": "ПУСТО",
+            "claim_title": "🎉 Ты выиграл!",
+            "claim_text": "Введи Trade URL, чтобы сразу забрать предмет:",
+            "btn_claim_now": "ЗАБРАТЬ СЕЙЧАС",
+            "btn_claim_later": "В ИНВЕНТАРЬ (на потом)"
         },
         en: {
             "loading": "Loading...",
@@ -296,7 +315,11 @@
             "alert_trade_url": "This doesn't look like a Trade URL!",
             "spin_no_spins": "NO SPINS",
             "spin_btn_go": "SPIN ROULETTE",
-            "nothing": "NOTHING"
+            "nothing": "NOTHING",
+            "claim_title": "🎉 You won!",
+            "claim_text": "Enter Trade URL to claim your item immediately:",
+            "btn_claim_now": "CLAIM NOW",
+            "btn_claim_later": "TO INVENTORY (for later)"
         }
     };
 
@@ -312,7 +335,7 @@
         currentLang = currentLang === 'ru' ? 'en' : 'ru';
         localStorage.setItem('lang', currentLang);
         updateLanguageUI();
-        initApp(); // Освежаем кнопки
+        initApp(); 
     }
 
     function showScreen(id) {
@@ -365,7 +388,6 @@
         showScreen('screen-dashboard');
     }
 
-    // --- ПРИГЛАШЕНИЕ ДРУЗЕЙ ---
     function inviteFriend() {
         const link = `https://t.me/${BOT_USERNAME}?start=${tg_id}`;
         const text = encodeURIComponent(currentLang === 'ru' ? "Заходи крутить рулетку CS2 и забирай скины! 🎁" : "Come spin the CS2 roulette and get skins! 🎁");
@@ -391,7 +413,6 @@
         showScreen('screen-promo');
     }
 
-    // --- РУЛЕТКА ---
     function goToRoulette() {
         generateTape();
         showScreen('screen-roulette');
@@ -403,7 +424,6 @@
         tape.style.transition = 'none';
         tape.style.transform = 'translateX(0)';
         
-        // Генерируем ленту из реальных скинов
         for(let i=0; i<80; i++) {
             let rndItem = allPrizes.length > 0 ? allPrizes[Math.floor(Math.random() * allPrizes.length)] : { image_url: '', name: '???' };
             tape.innerHTML += `<div class="item" id="item-${i}"><img src="${rndItem.image_url}"><span>${rndItem.name}</span></div>`;
@@ -447,24 +467,44 @@
 
         setTimeout(() => {
             btn.disabled = false; btn.innerText = dict[currentLang].btn_spin;
-            // Если выиграл вещь, обновляем локальный инвентарь (чтобы не делать лишний запрос к АПИ)
+            
+            const currentSpins = parseInt(document.getElementById('d-spins').innerText);
+            document.getElementById('d-spins').innerText = Math.max(0, currentSpins - 1);
+            
             if (!wonPrize.is_empty && res.win_id) {
                 userInventory.push({ id: res.win_id, name: wonPrize.name, image_url: wonPrize.image_url });
-            }
-            
-            // Если ничего не выпало, говорим об этом
-            if (wonPrize.is_empty) {
+                
+                // Открываем окно вывода скина
+                document.getElementById('claim-img').src = wonPrize.image_url;
+                document.getElementById('claim-name').innerText = wonPrize.name;
+                document.getElementById('claim-trade-input').value = ""; // Очищаем поле ввода
+                showScreen('screen-claim');
+            } else {
                 tg.showAlert(currentLang === 'ru' ? "К сожалению, в этот раз пусто :(" : "Unfortunately, it's empty this time :(");
             }
-            
-            // Обновляем циферку прокрутов сразу
-            const currentSpins = parseInt(document.getElementById('d-spins').innerText);
-            document.getElementById('d-spins').innerText = currentSpins - 1;
             
         }, 6500);
     }
 
-    // --- ИНВЕНТАРЬ ---
+    // НОВАЯ ФУНКЦИЯ ДЛЯ ВЫВОДА СРАЗУ ПОСЛЕ ВЫИГРЫША
+    async function claimItemFromWin() {
+        const urlInput = document.getElementById('claim-trade-input').value;
+        if (!urlInput.includes('steamcommunity.com/tradeoffer')) return tg.showAlert(dict[currentLang].alert_trade_url);
+
+        showScreen('screen-loading');
+        // Тот же эндпоинт вывода: он заберет ВСЕ вещи со статусом "в инвентаре"
+        const res = await api('/trade', 'POST', { tradeUrl: urlInput });
+        
+        if (res.success) {
+            tg.showAlert(dict[currentLang].alert_withdraw_ok);
+            userInventory =[]; // Очищаем локально после вывода
+            initApp(); // Возвращаемся в меню
+        } else {
+            tg.showAlert(res.error || "Ошибка сохранения");
+            showScreen('screen-claim'); // Возвращаем на экран ввода
+        }
+    }
+
     function openInventory() {
         const list = document.getElementById('inventory-list');
         const withdrawSection = document.getElementById('withdraw-section');
@@ -495,7 +535,7 @@
         
         if (res.success) {
             tg.showAlert(dict[currentLang].alert_withdraw_ok);
-            userInventory =[]; // Очищаем локально после вывода
+            userInventory =[]; 
             initApp(); 
         } else {
             tg.showAlert(res.error || "Ошибка сохранения");
@@ -508,7 +548,6 @@
         const res = await api('/admin/stats');
         document.getElementById('a-users').innerText = res.users;
         
-        // Список заявок
         const pList = document.getElementById('pending-list');
         pList.innerHTML = '';
         if (res.pending.length === 0) pList.innerHTML = '<div style="font-size:12px; color:#555; text-align:center">Нет заявок</div>';
@@ -522,7 +561,6 @@
             </div>`;
         });
 
-        // Список скинов для управления
         const sList = document.getElementById('admin-prizes-list');
         sList.innerHTML = '';
         res.prizes.forEach(p => {
@@ -589,12 +627,11 @@
             alert("Скин успешно добавлен!");
             document.getElementById('p-name').value = '';
             document.getElementById('p-img-file').value = '';
-            loadAdminStats(); // Сразу обновляем список
+            loadAdminStats(); 
         } catch (e) { alert(e.message); } 
         finally { btn.innerText = "Добавить в базу"; btn.disabled = false; }
     }
 
-    // Старт
     initApp();
 
 </script>
