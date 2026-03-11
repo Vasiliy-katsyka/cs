@@ -76,14 +76,14 @@
         .item { 
             min-width: 130px; height: 120px; margin: 0 2px; 
             background: linear-gradient(to bottom, #1e222a, #15171c); 
-            border-top: 3px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
         }
         .item img { width: 90px; height: 70px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
         .item span { font-size: 11px; color: #888; margin-top: 8px; max-width: 110px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
         .stat-block { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         
-        .inv-item { display: flex; align-items: center; gap: 10px; background: #1a1d24; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
+        .inv-item { display: flex; align-items: center; gap: 10px; background: #1a1d24; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
         .inv-item img { width: 50px; height: 40px; object-fit: contain; }
         
         .admin-item { background: #1a1d24; padding: 10px; margin-bottom: 8px; border-radius: 6px; font-size: 12px; border-left: 3px solid var(--primary); }
@@ -167,11 +167,11 @@
         </div>
     </div>
 
-    <!-- НОВЫЙ ЭКРАН ПОСЛЕ ВЫИГРЫША -->
+    <!-- ЭКРАН ПОСЛЕ ВЫИГРЫША -->
     <div id="screen-claim" class="screen">
         <div class="glass-box">
             <h2 style="color: #2ecc71; margin-bottom: 10px;" data-i18n="claim_title">🎉 Ты выиграл!</h2>
-            <img id="claim-img" src="" style="width:120px; height: 100px; object-fit: contain; margin: 15px 0; filter: drop-shadow(0 0 10px rgba(255, 179, 0, 0.5));">
+            <img id="claim-img" src="" style="width:120px; height: 100px; object-fit: contain; margin: 15px 0;">
             <h3 id="claim-name" style="margin-bottom: 15px;">Скин</h3>
             
             <p style="font-size:12px; color: #aaa; margin-top:10px;" data-i18n="claim_text">Введи Trade URL, чтобы сразу забрать предмет:</p>
@@ -187,7 +187,6 @@
         <div class="glass-box">
             <h2 style="color:var(--accent); margin-bottom: 15px;" data-i18n="inventory_title">Твой Инвентарь</h2>
             <div id="inventory-list" style="max-height: 200px; overflow-y:auto; margin-bottom: 15px;">
-                <!-- Сюда падают выигранные скины -->
             </div>
             
             <div id="withdraw-section" style="display:none;">
@@ -224,8 +223,17 @@
 
             <p style="font-size:12px; color:#888; margin-bottom:5px;">Добавить скин (ImgBB):</p>
             <input type="text" id="p-name" placeholder="Название скина" style="margin:0 0 5px 0; font-size:12px;">
+            
+            <!-- Выбор цвета -->
+            <select id="p-color" style="margin:0 0 5px 0; width:100%; padding:10px; background:#1a1d24; color:#fff; border:1px solid #444; border-radius:4px; font-size:12px;">
+                <option value="blue">🔵 Синий (Blue)</option>
+                <option value="purple">🟣 Фиолетовый (Purple)</option>
+                <option value="orange">🟠 Оранжевый/Тайное (Orange)</option>
+                <option value="red">🔴 Красный/Нож (Red)</option>
+            </select>
+            
             <input type="file" id="p-img-file" accept="image/*" style="margin:0 0 5px 0; width:100%;">
-            <input type="number" id="p-chance" placeholder="Шанс (%)" style="margin:0 0 10px 0; font-size:12px;">
+            <input type="number" id="p-chance" placeholder="Шанс в % (0 = визуал, -1 = авто)" style="margin:0 0 10px 0; font-size:12px;">
             <button id="btn-add-prize" onclick="addPrize()" style="margin:0 0 15px 0; padding:10px;">Добавить в базу</button>
 
             <h4 style="color:var(--primary); margin-bottom:5px;">Управление скинами:</h4>
@@ -283,7 +291,6 @@
             "alert_trade_url": "Это не похоже на Trade URL!",
             "spin_no_spins": "НЕТ ПРОКРУТОВ",
             "spin_btn_go": "КРУТИТЬ РУЛЕТКУ",
-            "nothing": "ПУСТО",
             "claim_title": "🎉 Ты выиграл!",
             "claim_text": "Введи Trade URL, чтобы сразу забрать предмет:",
             "btn_claim_now": "ЗАБРАТЬ СЕЙЧАС",
@@ -315,13 +322,22 @@
             "alert_trade_url": "This doesn't look like a Trade URL!",
             "spin_no_spins": "NO SPINS",
             "spin_btn_go": "SPIN ROULETTE",
-            "nothing": "NOTHING",
             "claim_title": "🎉 You won!",
             "claim_text": "Enter Trade URL to claim your item immediately:",
             "btn_claim_now": "CLAIM NOW",
             "btn_claim_later": "TO INVENTORY (for later)"
         }
     };
+
+    function getSkinColor(colorName) {
+        switch(colorName) {
+            case 'blue': return '#4b69ff';
+            case 'purple': return '#8847ff';
+            case 'orange': return '#ff8c00';
+            case 'red': return '#eb4b4b';
+            default: return '#4b69ff';
+        }
+    }
 
     function updateLanguageUI() {
         document.getElementById('lang-btn').innerText = currentLang === 'ru' ? '🇷🇺 RU' : '🇬🇧 EN';
@@ -425,8 +441,13 @@
         tape.style.transform = 'translateX(0)';
         
         for(let i=0; i<80; i++) {
-            let rndItem = allPrizes.length > 0 ? allPrizes[Math.floor(Math.random() * allPrizes.length)] : { image_url: '', name: '???' };
-            tape.innerHTML += `<div class="item" id="item-${i}"><img src="${rndItem.image_url}"><span>${rndItem.name}</span></div>`;
+            let rndItem = allPrizes.length > 0 ? allPrizes[Math.floor(Math.random() * allPrizes.length)] : { image_url: '', name: '???', color: 'blue' };
+            let c = getSkinColor(rndItem.color);
+            tape.innerHTML += `
+            <div class="item" id="item-${i}" style="border-top: 3px solid ${c}; box-shadow: inset 0 10px 20px -10px ${c}40;">
+                <img src="${rndItem.image_url}">
+                <span>${rndItem.name}</span>
+            </div>`;
         }
     }
 
@@ -441,17 +462,15 @@
         }
 
         const wonPrize = res.prize;
+        const wonColor = getSkinColor(wonPrize.color);
 
         const targetIndex = 60;
         const targetEl = document.getElementById(`item-${targetIndex}`);
-        targetEl.innerHTML = `<img src="${wonPrize.image_url}"><span>${wonPrize.is_empty ? dict[currentLang].nothing : wonPrize.name}</span>`;
+        targetEl.innerHTML = `<img src="${wonPrize.image_url}"><span>${wonPrize.name}</span>`;
         
-        if (!wonPrize.is_empty) {
-            targetEl.style.borderTop = "3px solid var(--accent)"; 
-            targetEl.style.background = "#252b36";
-        } else {
-            targetEl.style.borderTop = "3px solid #555";
-        }
+        targetEl.style.borderTop = `3px solid ${wonColor}`; 
+        targetEl.style.background = "#252b36";
+        targetEl.style.boxShadow = `inset 0 10px 20px -10px ${wonColor}80`;
 
         const tape = document.getElementById('roulette-tape');
         const cardWidth = 134;
@@ -471,37 +490,33 @@
             const currentSpins = parseInt(document.getElementById('d-spins').innerText);
             document.getElementById('d-spins').innerText = Math.max(0, currentSpins - 1);
             
-            if (!wonPrize.is_empty && res.win_id) {
-                userInventory.push({ id: res.win_id, name: wonPrize.name, image_url: wonPrize.image_url });
+            if (res.win_id) {
+                userInventory.push({ id: res.win_id, name: wonPrize.name, image_url: wonPrize.image_url, color: wonPrize.color });
                 
-                // Открываем окно вывода скина
-                document.getElementById('claim-img').src = wonPrize.image_url;
+                const imgEl = document.getElementById('claim-img');
+                imgEl.src = wonPrize.image_url;
+                imgEl.style.filter = `drop-shadow(0 0 15px ${wonColor}80)`;
                 document.getElementById('claim-name').innerText = wonPrize.name;
-                document.getElementById('claim-trade-input').value = ""; // Очищаем поле ввода
+                document.getElementById('claim-trade-input').value = ""; 
                 showScreen('screen-claim');
-            } else {
-                tg.showAlert(currentLang === 'ru' ? "К сожалению, в этот раз пусто :(" : "Unfortunately, it's empty this time :(");
             }
-            
         }, 6500);
     }
 
-    // НОВАЯ ФУНКЦИЯ ДЛЯ ВЫВОДА СРАЗУ ПОСЛЕ ВЫИГРЫША
     async function claimItemFromWin() {
         const urlInput = document.getElementById('claim-trade-input').value;
         if (!urlInput.includes('steamcommunity.com/tradeoffer')) return tg.showAlert(dict[currentLang].alert_trade_url);
 
         showScreen('screen-loading');
-        // Тот же эндпоинт вывода: он заберет ВСЕ вещи со статусом "в инвентаре"
         const res = await api('/trade', 'POST', { tradeUrl: urlInput });
         
         if (res.success) {
             tg.showAlert(dict[currentLang].alert_withdraw_ok);
-            userInventory =[]; // Очищаем локально после вывода
-            initApp(); // Возвращаемся в меню
+            userInventory =[]; 
+            initApp(); 
         } else {
             tg.showAlert(res.error || "Ошибка сохранения");
-            showScreen('screen-claim'); // Возвращаем на экран ввода
+            showScreen('screen-claim'); 
         }
     }
 
@@ -515,8 +530,9 @@
             withdrawSection.style.display = 'none';
         } else {
             userInventory.forEach(item => {
+                let c = getSkinColor(item.color);
                 list.innerHTML += `
-                <div class="inv-item">
+                <div class="inv-item" style="border-left: 3px solid ${c}">
                     <img src="${item.image_url}">
                     <span style="font-weight:bold; font-size:14px;">${item.name}</span>
                 </div>`;
@@ -564,11 +580,13 @@
         const sList = document.getElementById('admin-prizes-list');
         sList.innerHTML = '';
         res.prizes.forEach(p => {
+            let chanceTxt = p.chance === -1 ? "Авто" : `${p.chance}%`;
+            let c = getSkinColor(p.color);
             sList.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#111; padding:5px; margin-bottom:5px; border-radius:5px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#111; padding:5px; margin-bottom:5px; border-radius:5px; border-left: 3px solid ${c};">
                 <div style="font-size:10px; display:flex; align-items:center; gap:5px;">
                     <img src="${p.image_url}" width="30">
-                    <div><b>${p.name}</b><br><span style="color:#aaa">Шанс: ${p.chance}%</span></div>
+                    <div><b>${p.name}</b><br><span style="color:#aaa">Шанс: ${chanceTxt}</span></div>
                 </div>
                 <button onclick="deletePrize(${p.id})" style="width:auto; margin:0; padding:5px 10px; font-size:10px;" class="danger">Удалить</button>
             </div>`;
@@ -607,6 +625,7 @@
         const name = document.getElementById('p-name').value;
         const fileInput = document.getElementById('p-img-file');
         const chance = document.getElementById('p-chance').value;
+        const color = document.getElementById('p-color').value;
 
         if(!name || !chance || fileInput.files.length === 0) return alert("Заполни все поля и выбери файл!");
 
@@ -622,7 +641,7 @@
             if (!imgData.success) throw new Error("Ошибка загрузки картинки.");
             const imageUrl = imgData.data.url;
 
-            await api('/admin/prize', 'POST', { name: name, image_url: imageUrl, chance: parseFloat(chance) });
+            await api('/admin/prize', 'POST', { name: name, image_url: imageUrl, chance: parseFloat(chance), color: color });
             
             alert("Скин успешно добавлен!");
             document.getElementById('p-name').value = '';
