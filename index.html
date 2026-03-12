@@ -148,7 +148,9 @@
             </div>
             
             <button class="secondary" onclick="openPromoScreen()" style="margin-top: 25px;" data-i18n="btn_promo">Ввести промокод</button>
-            
+            <div style="margin-top: 8px;">
+                <a href="#" onclick="window.Telegram.WebApp.openLink('https://telegra.ph/WOODY-DROP-03-12'); return false;" style="color: #888; font-size: 12px; text-decoration: underline;" data-i18n="where_promo">Где взять промокод?</a>
+            </div>
             <div id="action-btn-container" style="margin-top: 15px;"></div>
             <button class="secondary" onclick="openInventory()" style="margin-top: 10px; border-color: var(--primary);" data-i18n="btn_inventory">📦 ИНВЕНТАРЬ</button>
         </div>
@@ -290,11 +292,12 @@
             "alert_withdraw_ok": "Заявка создана! WOODY уже отправляет приз.",
             "alert_trade_url": "Это не похоже на Trade URL!",
             "spin_no_spins": "НЕТ ПРОКРУТОВ",
-            "spin_btn_go": "КРУТИТЬ РУЛЕТКУ",
+            "spin_btn_go": "КРУТИТЬ РУЛЕТКУ", // <-- после этой строки добавь:
+            "where_promo": "Где взять промокод?",
             "claim_title": "🎉 Ты выиграл!",
             "claim_text": "Введи Trade URL, чтобы сразу забрать предмет:",
             "btn_claim_now": "ЗАБРАТЬ СЕЙЧАС",
-            "btn_claim_later": "В ИНВЕНТАРЬ (на потом)"
+            "btn_claim_later": "В ИНВЕНТАРЬ (на потом)",
         },
         en: {
             "loading": "Loading...",
@@ -321,7 +324,8 @@
             "alert_withdraw_ok": "Request created! WOODY is sending the prize.",
             "alert_trade_url": "This doesn't look like a Trade URL!",
             "spin_no_spins": "NO SPINS",
-            "spin_btn_go": "SPIN ROULETTE",
+            "spin_btn_go": "SPIN ROULETTE", // <-- после этой строки добавь:
+            "where_promo": "Where to get a promo code?",
             "claim_title": "🎉 You won!",
             "claim_text": "Enter Trade URL to claim your item immediately:",
             "btn_claim_now": "CLAIM NOW",
@@ -605,11 +609,18 @@
         loadAdminStats();
     }
 
+    // Полностью замени старую функцию genPromo:
     async function genPromo(n) {
         const res = await api('/admin/promo', 'POST', { uses: n });
-        navigator.clipboard.writeText(res.code).then(() => {
+        
+        try {
+            // Пытаемся скопировать автоматически (Android / ПК)
+            await navigator.clipboard.writeText(res.code);
             tg.showAlert(`Код скопирован: ${res.code}`);
-        }).catch(err => { tg.showAlert(`Код: ${res.code}`); });
+        } catch (err) {
+            // Запасной вариант для iOS / Safari (выводит окно, откуда текст легко выделить и скопировать)
+            prompt("IOS блокирует авто-копирование.\nСкопируйте код вручную:", res.code);
+        }
     }
 
     async function sendBroadcast() {
