@@ -613,14 +613,14 @@
     async function genPromo(n) {
         const res = await api('/admin/promo', 'POST', { uses: n });
         
-        try {
+       // try {
             // Пытаемся скопировать автоматически (Android / ПК)
-            await navigator.clipboard.writeText(res.code);
-            tg.showAlert(`Код скопирован: ${res.code}`);
-        } catch (err) {
+           // await navigator.clipboard.writeText(res.code);
+          //  tg.showAlert(`Код скопирован: ${res.code}`);
+        //} catch (err) {
             // Запасной вариант для iOS / Safari (выводит окно, откуда текст легко выделить и скопировать)
-            prompt("IOS блокирует авто-копирование.\nСкопируйте код вручную:", res.code);
-        }
+        prompt("Скопируйте код:", res.code);
+       // }
     }
 
     async function sendBroadcast() {
