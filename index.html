@@ -109,7 +109,8 @@
 
     <!-- 0. Загрузка -->
     <div id="screen-loading" class="screen active">
-        <h2 style="color:var(--accent)" data-i18n="loading">Загрузка...</h2>
+        <h2 id="loading-text" style="color:var(--accent)" data-i18n="loading">Загрузка...</h2>
+        <button id="btn-reload" class="secondary" onclick="location.reload()" style="display:none; margin-top:20px; width: 200px;" data-i18n="btn_reload">Обновить</button>
     </div>
 
     <!-- 1. Ввод промокода -->
@@ -298,6 +299,8 @@
             "claim_text": "Введи Trade URL, чтобы сразу забрать предмет:",
             "btn_claim_now": "ЗАБРАТЬ СЕЙЧАС",
             "btn_claim_later": "В ИНВЕНТАРЬ (на потом)",
+            "vpn_error": "Плохое соединение.\nПожалуйста, включите VPN и попробуйте снова.",
+            "btn_reload": "ОБНОВИТЬ"
         },
         en: {
             "loading": "Loading...",
@@ -329,7 +332,9 @@
             "claim_title": "🎉 You won!",
             "claim_text": "Enter Trade URL to claim your item immediately:",
             "btn_claim_now": "CLAIM NOW",
-            "btn_claim_later": "TO INVENTORY (for later)"
+            "btn_claim_later": "TO INVENTORY (for later)",
+            "vpn_error": "Poor connection.\nPlease turn on VPN and try again.", 
+            "btn_reload": "RELOAD"
         }
     };
 
@@ -365,23 +370,55 @@
     }
 
     async function api(path, method = "GET", body = null) {
+        // Устанавливаем таймаут на 10 секунд, чтобы не висело бесконечно
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
             const url = `${API_URL}${path}?tg_id=${tg_id}`;
-            const options = { method, headers: {} };
+            const options = { method, headers: {}, signal: controller.signal };
             if (body) { 
                 options.headers['Content-Type'] = 'application/json'; 
                 options.body = JSON.stringify(body); 
             }
             const req = await fetch(url, options);
+            clearTimeout(timeoutId); // Если успели, отменяем таймаут
             return await req.json();
         } catch (e) {
-            tg.showAlert("Network error");
+            clearTimeout(timeoutId);
+            
+            // Если произошла ошибка сети или сработал таймаут блокировки
+            const vpnMsg = dict[currentLang].vpn_error;
+            tg.showAlert(vpnMsg); // Выводим Алерт телеграма
+            
+            // Меняем текст на экране Загрузки, чтобы человек понял, в чем дело
+            const loadText = document.getElementById('loading-text');
+            if (loadText) {
+                loadText.innerText = vpnMsg;
+                loadText.style.color = "#ff4444";
+                loadText.style.fontSize = "14px";
+                loadText.style.whiteSpace = "pre-line"; // Чтобы перенос строки \n работал
+            }
+            // Показываем кнопку перезагрузки
+            const reloadBtn = document.getElementById('btn-reload');
+            if (reloadBtn) reloadBtn.style.display = 'block';
+
             return { error: "Network error" };
         }
     }
 
     async function initApp() {
         updateLanguageUI();
+        
+        const loadText = document.getElementById('loading-text');
+        if (loadText) {
+            loadText.innerText = dict[currentLang].loading;
+            loadText.style.color = "var(--accent)";
+            loadText.style.fontSize = "24px";
+        }
+        const reloadBtn = document.getElementById('btn-reload');
+        if (reloadBtn) reloadBtn.style.display = 'none';
+
         showScreen('screen-loading');
         
         const data = await api('/init');
